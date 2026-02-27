@@ -56,7 +56,13 @@
           "PackageIdentifier": "VideoLAN.VLC"
         },
         {
-          "PackageIdentifier": "RARLab.WinRAR"
+          "PackageIdentifier": "Zoom.Zoom"
+        },
+        {
+          "PackageIdentifier": "RevoUninstaller.RevoUninstaller"
+        },
+        {
+          "PackageIdentifier": "Glarysoft.GlaryUtilities"
         }
       ]
     }
