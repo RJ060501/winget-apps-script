@@ -3,31 +3,35 @@
   "CreationDate": "2026-02-26T20:00:00Z",
   "Sources": [
     {
-      "Name": "winget"
-    }
-  ],
-  "WinGetVersion": "1.11",
-  "Packages": [
-    {
-      "PackageIdentifier": "Google.Chrome"
-    },
-    {
-      "PackageIdentifier": "Microsoft.VisualStudioCode"
-    },
-    {
-      "PackageIdentifier": "7zip.7zip"
-    },
-    {
-      "PackageIdentifier": "Notepad++.Notepad++"
-    },
-    {
-      "PackageIdentifier": "Git.Git"
-    },
-    {
-      "PackageIdentifier": "Microsoft.Teams"
-    },
-    {
-      "PackageIdentifier": "Spotify.Spotify"
+      "SourceDetails": {
+        "Name": "winget",
+        "Identifier": "Microsoft.Winget.Source_8wekyb3d8bbwe",
+        "Argument": "https://cdn.winget.microsoft.com/cache",
+        "Type": "Microsoft.PreIndexed.Package"
+      },
+      "Packages": [
+        {
+          "PackageIdentifier": "Google.Chrome"
+        },
+        {
+          "PackageIdentifier": "Microsoft.VisualStudioCode"
+        },
+        {
+          "PackageIdentifier": "7zip.7zip"
+        },
+        {
+          "PackageIdentifier": "Notepad++.Notepad++"
+        },
+        {
+          "PackageIdentifier": "Git.Git"
+        },
+        {
+          "PackageIdentifier": "Microsoft.Teams"
+        },
+        {
+          "PackageIdentifier": "Spotify.Spotify"
+        }
+      ]
     }
   ]
 }
