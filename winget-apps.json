@@ -1,0 +1,34 @@
+{
+  "CreationDate": "2026-02-26T20:00:00Z",
+  "Sources": [
+    {
+      "Name": "winget"
+    }
+  ],
+  "Packages": [
+    {
+      "PackageIdentifier": "Google.Chrome"
+    },
+    {
+      "PackageIdentifier": "Microsoft.VisualStudioCode"
+    },
+    {
+      "PackageIdentifier": "7zip.7zip"
+    },
+    {
+      "PackageIdentifier": "Notepad++.Notepad++"
+    },
+    {
+      "PackageIdentifier": "Microsoft.VisualStudioCode"
+    },
+    {
+      "PackageIdentifier": "Git.Git"
+    },
+    {
+      "PackageIdentifier": "Microsoft.Teams"
+    },
+        {
+      "PackageIdentifier": "Spotify.Spotify"
+    }
+  ]
+}
