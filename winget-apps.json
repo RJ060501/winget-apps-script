@@ -1,10 +1,12 @@
 {
+  "$schema": "https://aka.ms/winget-packages.schema.2.0.json",
   "CreationDate": "2026-02-26T20:00:00Z",
   "Sources": [
     {
       "Name": "winget"
     }
   ],
+  "WinGetVersion": "1.11",
   "Packages": [
     {
       "PackageIdentifier": "Google.Chrome"
@@ -19,15 +21,12 @@
       "PackageIdentifier": "Notepad++.Notepad++"
     },
     {
-      "PackageIdentifier": "Microsoft.VisualStudioCode"
-    },
-    {
       "PackageIdentifier": "Git.Git"
     },
     {
       "PackageIdentifier": "Microsoft.Teams"
     },
-        {
+    {
       "PackageIdentifier": "Spotify.Spotify"
     }
   ]
