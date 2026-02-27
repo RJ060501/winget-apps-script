@@ -27,9 +27,6 @@
         },
         {
           "PackageIdentifier": "Microsoft.Teams"
-        },
-        {
-          "PackageIdentifier": "Spotify.Spotify"
         }
       ]
     }
