@@ -1,9 +1,9 @@
 # setup-apps.ps1
-$jsonUrl = "https://github.com/RJ060501/winget-apps-script"  # your URL here
+$jsonUrl = "https://raw.githubusercontent.com/RJ060501/winget-apps-script/refs/heads/main/setup-apps.ps1"  # your URL here
 
 $tempJson = "$env:TEMP\winget-apps.json"
 
-Write-Host "Downloading app list from GitHub..." -ForegroundColor Green
+Write-Host "Downloading app list from GitHub repo..." -ForegroundColor Green
 Invoke-WebRequest -Uri $jsonUrl -OutFile $tempJson
 
 Write-Host "Installing apps via winget import..." -ForegroundColor Green
