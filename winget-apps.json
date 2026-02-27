@@ -28,6 +28,36 @@
         {
           "PackageIdentifier": "Microsoft.Teams"
         }
+        ,
+        {
+          "PackageIdentifier": "Autodesk.EAGLE"
+        }
+        ,
+        {
+          "PackageIdentifier": "Microsoft.BingWallpaper"
+        }
+        ,
+        {
+          "PackageIdentifier": "Bluebeam.Revu.20"
+        },
+        {
+          "PackageIdentifier": "Google.ChromeRemoteDesktopHost"
+        },
+        {
+          "PackageIdentifier": "Adobe.CreativeCloud"
+        },
+        {
+          "PackageIdentifier": "Dropbox.Dropbox"
+        },
+        {
+          "PackageIdentifier": "Mozilla.Firefox.eo"
+        },
+        {
+          "PackageIdentifier": "VideoLAN.VLC"
+        },
+        {
+          "PackageIdentifier": "RARLab.WinRAR"
+        }
       ]
     }
   ]
