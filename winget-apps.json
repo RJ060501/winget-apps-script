@@ -50,7 +50,7 @@
           "PackageIdentifier": "Dropbox.Dropbox"
         },
         {
-          "PackageIdentifier": "Mozilla.Firefox.eo"
+          "PackageIdentifier": "Mozilla.Firefox"
         },
         {
           "PackageIdentifier": "VideoLAN.VLC"
@@ -63,6 +63,12 @@
         },
         {
           "PackageIdentifier": "Glarysoft.GlaryUtilities"
+        },
+        {
+          "PackageIdentifier": "Microsoft.Office"
+        },
+        {
+          "PackageIdentifier": "SlackTechnologies.Slack"
         }
       ]
     }
