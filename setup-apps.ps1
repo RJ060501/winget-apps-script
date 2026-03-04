@@ -89,7 +89,7 @@ Write-Host "Apps installed! Some apps may require a restart or manual login/setu
 #  6. Custom / non-winget installs
 # -------------------------------
 # Sophos - (adjust path)
-if (-not (Get-Service -Name "Sophos*" -ErrorAction SilentlyContinue)) {
+if (-not (Get-Service -Name "Sophos*")) {
     Write-Status "Installing Sophos Endpoint..."
     $sophosPath = "\\Vbs6\data\Programs\Sophos Cloud Antivirus\SophosSetup.exe"
     if (Test-Path $sophosPath) {
