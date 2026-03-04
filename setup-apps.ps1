@@ -32,9 +32,9 @@ Write-Status "New Computer Setup - Resolut Style" "Cyan"
 if (-not $UserAccountName) {
     $UserAccountName = Read-Host "Enter user logon name (e.g. jsmith)"
 }
-$computerName = "$($UserSamAccountName.Substring(0,1).ToUpper())$($UserSamAccountName.Substring(1))${ComputerSuffix}"
+$computerName = "$($UserAccountName.Substring(0,1).ToUpper())$($UserAccountName.Substring(1))${ComputerSuffix}"
 Write-Status "Target computer name: $computerName"
-Write-Status "User: $UserSamAccountName    Role: $Role"
+Write-Status "User: $UserAccountName    Role: $Role"
 
 # -------------------------------
 #  2. Rename computer (if needed)
