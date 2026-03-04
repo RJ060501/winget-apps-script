@@ -83,7 +83,21 @@ winget import -i $tempJson `
 
 Remove-Item $tempJson -ErrorAction SilentlyContinue
 
-Write-Host "Setup complete! Some apps may require a restart or manual login/setup." -ForegroundColor Cyan
+Write-Host "Apps installed! Some apps may require a restart or manual login/setup." -ForegroundColor Cyan
+
+# -------------------------------
+#  6. Custom / non-winget installs
+# -------------------------------
+# Sophos - (adjust path)
+if (-not (Get-Service -Name "Sophos*" -ErrorAction SilentlyContinue)) {
+    Write-Status "Installing Sophos Endpoint..."
+    $sophosPath = "\\Vbs6\data\Programs\Sophos Cloud Antivirus\SophosSetup.exe"
+    if (Test-Path $sophosPath) {
+        Start-Process $sophosPath -ArgumentList "--quiet" -Wait
+    } else {
+        Write-Status "Sophos installer not found at $sophosPath" "Yellow"
+    }
+}
 
 # -------------------------------
 #  7. Power settings (High Performance, skip laptops)
