@@ -1,4 +1,38 @@
 # setup-apps.ps1
+
+
+param (
+    $UserAccountName,
+    $ComputerSuffix = "-PC",
+    $SkipDomainJoin,
+    $Role
+)
+
+
+
+# -------------------------------
+#  Helper Functions
+# -------------------------------
+function Write-Status {
+    param([string]$Message, [string]$Color = "Green")
+    Write-Host $Message -ForegroundColor $Color
+}
+
+function Test-PendingReboot {
+    # Simple check - expand if needed
+    if (Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending") { return $true }
+    return $false
+}
+
+# -------------------------------
+#  1. Gather Info
+# -------------------------------
+
+
+
+# -------------------------------
+#  5. Install Applications
+# -------------------------------
 $jsonUrl = "https://raw.githubusercontent.com/RJ060501/winget-apps-script/refs/heads/main/winget-apps.json"  # your URL here
 
 $tempJson = "$env:TEMP\winget-apps.json"
