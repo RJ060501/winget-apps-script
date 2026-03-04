@@ -84,3 +84,15 @@ winget import -i $tempJson `
 Remove-Item $tempJson -ErrorAction SilentlyContinue
 
 Write-Host "Setup complete! Some apps may require a restart or manual login/setup." -ForegroundColor Cyan
+
+# -------------------------------
+#  7. Power settings (High Performance, skip laptops)
+# -------------------------------
+$battery = Get-CimInstance -ClassName Win32_Battery
+if ($null -eq $battery -or $battery.BatteryStatus -eq 0) {   # Desktop
+    Write-Status "Setting High Performance power plan (desktop)"
+    powercfg /setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c
+    powercfg -change -monitor-timeout-ac 30    # 30 min screen
+    powercfg -change -standby-timeout-ac 120   # 2 hr sleep
+    powercfg -h off                            # no hibernation
+}
