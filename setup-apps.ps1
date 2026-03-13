@@ -158,18 +158,34 @@ foreach ($url in $autodeskDownloads) {
     Write-Status "Installing: $fileName" "Green"
 
     try {
-        $process = Start-Process -FilePath $localPath `
-            -ArgumentList "-q" `
-            -Verb RunAs `
-            -Wait -PassThru `
-            # -RedirectStandardOutput $logFile `
-            # -RedirectStandardError "$logFile.err" `
-            -ErrorAction Stop
+        # $process = Start-Process -FilePath $localPath `
+        #     -ArgumentList "-q" `
+        #     -Verb RunAs `
+        #     -Wait -PassThru `
+        #     # -RedirectStandardOutput $logFile `
+        #     # -RedirectStandardError "$logFile.err" `
+        #     -ErrorAction Stop
 
+        # $exit = $process.ExitCode
+
+        Add-Type -AssemblyName System.Windows.Forms
+        [System.Windows.Forms.Application]::DoEvents()  # optional - helps with UI context in some cases
+
+        $psi = New-Object System.Diagnostics.ProcessStartInfo
+        $psi.FileName = $localPath
+        $psi.Arguments = "-q"
+        $psi.Verb = "RunAs"
+        $psi.UseShellExecute = $true   # ← Critical: uses ShellExecute (like double-click in Explorer)
+        $psi.WorkingDirectory = $tempFolder
+
+        $process = [System.Diagnostics.Process]::Start($psi)
+        $process.WaitForExit()
         $exit = $process.ExitCode
+
         if ($exit -eq 0 -or $exit -eq 3010 -or $exit -eq 1641) {
             Write-Status "  SUCCESS (exit $exit)" "Green"
-        } else {
+        }
+        else {
             Write-Status "  Exit $exit — check log: $logFile" "Yellow"
         }
     }
