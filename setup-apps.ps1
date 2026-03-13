@@ -67,50 +67,17 @@ if (-not $SkipDomainJoin) {
 # -------------------------------
 #  4. Driver Check
 # -------------------------------
-Write-Status "Checking for missing or problem drivers..." "Cyan"
+Write-Status "Checking Device Manager for problem drivers..." "Cyan"
  
-# Report any devices with errors or missing drivers
-$problemDevices = Get-PnpDevice | Where-Object { $_.Status -ne 'OK' }
+# Filter to only genuinely broken devices — Error status means missing/failed driver.
+# 'Unknown' is normal for USB drives, phones, virtual/remote devices and is NOT a real problem.
+$problemDevices = Get-PnpDevice | Where-Object { $_.Status -eq 'Error' }
  
 if ($problemDevices) {
-    Write-Status "The following devices have issues:" "Yellow"
+    Write-Status "The following devices have driver errors — may need manual attention:" "Yellow"
     $problemDevices | Format-Table -AutoSize FriendlyName, Status, Class, InstanceId
 } else {
-    Write-Status "All devices report OK in Device Manager." "Green"
-}
- 
-# Attempt Windows Update-based driver delivery via PSWindowsUpdate
-Write-Status "Attempting to install missing drivers via Windows Update..." "Cyan"
- 
-if (-not (Get-Module -ListAvailable -Name PSWindowsUpdate)) {
-    Write-Status "Installing PSWindowsUpdate module..." "Yellow"
-    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -Confirm:$false | Out-Null
-    Install-Module -Name PSWindowsUpdate -Force -Confirm:$false -Scope CurrentUser
-}
- 
-Import-Module PSWindowsUpdate -ErrorAction SilentlyContinue
- 
-try {
-    $driverUpdates = Get-WindowsUpdate -UpdateType Driver -AcceptAll -IgnoreReboot -ErrorAction Stop
-    if ($driverUpdates) {
-        Write-Status "Installing $($driverUpdates.Count) driver update(s)..." "Yellow"
-        Install-WindowsUpdate -UpdateType Driver -AcceptAll -IgnoreReboot -Confirm:$false
-        Write-Status "Driver updates installed." "Green"
-    } else {
-        Write-Status "No driver updates found via Windows Update." "Gray"
-    }
-} catch {
-    Write-Status "Could not pull driver updates automatically: $_" "Red"
-    Write-Status "Please review Device Manager manually for any remaining issues." "Yellow"
-}
- 
-# Re-check after driver install attempt
-$stillProblem = Get-PnpDevice | Where-Object { $_.Status -ne 'OK' }
-if ($stillProblem) {
-    Write-Status "Devices still showing issues after driver pass — manual attention may be needed:" "Yellow"
-    $stillProblem | Format-Table -AutoSize FriendlyName, Status, Class, InstanceId
-} else {
-    Write-Status "All devices OK after driver pass." "Green"
+    Write-Status "No driver errors found in Device Manager." "Green"
 }
 
 # -------------------------------
