@@ -100,71 +100,62 @@ Write-Host "Apps installed! Some apps may require a restart or manual login/setu
 #     }
 # }
 
-Write-Status "Installing Autodesk products: Auto CAD 2026 first, then Revit 2021 -> 2026..."
+Write-Status "Downloading & installing Autodesk products from GitHub Releases (AutoCAD 2026 first, then Revit 2021→2026)..." "Cyan"
 
-$autodeskFolder = "I:\Ryan Russell\Fresh\Autodesk"
+# === YOUR RELEASE ASSETS URLs (update once after uploading) ===
+$autodeskDownloads = @(
+    "https://github.com/RJ060501/winget-apps-script/releases/download/autodesk-installers-v1/AutoCAD_2026_English-US-en-US_setup_webinstall.exe",
+    "https://github.com/RJ060501/winget-apps-script/releases/download/autodesk-installers-v1/Revit_2021_Ship_20200715_r4_Win_64bit_....exe",
+    "https://github.com/RJ060501/winget-apps-script/releases/download/autodesk-installers-v1/Revit_2022_Ship_20210224_RTC_Win_64bit_....exe",
+    "https://github.com/RJ060501/winget-apps-script/releases/download/autodesk-installers-v1/Revit_2023_1_0_1_Win_64bit_di_ML_setup.exe",
+    "https://github.com/RJ060501/winget-apps-script/releases/download/autodesk-installers-v1/Revit_2024_3_ML_setup_webinstall.exe",
+    "https://github.com/RJ060501/winget-apps-script/releases/download/autodesk-installers-v1/Revit_2025_4_2_ML_setup_webinstall.exe",
+    "https://github.com/RJ060501/winget-apps-script/releases/download/autodesk-installers-v1/Revit_2026_2_ML_setup_webinstall.exe"
+)
 
-if (-not(Test-Path $autodeskFolder)) {
-    Write-Status "Autodesk folder not found at $autodeskFolder - Skipping" "Yellow"
+$tempFolder = "$env:TEMP\AutodeskInstallers"
+New-Item -Path $tempFolder -ItemType Directory -Force | Out-Null
+
+foreach ($url in $autodeskDownloads) {
+    $fileName = Split-Path $url -Leaf
+    $localPath = Join-Path $tempFolder $fileName
+    $logFile = "$env:TEMP\Autodesk-$($fileName.BaseName)-install.log"
+
+    Write-Status "Downloading: $fileName" "Yellow"
+    Invoke-WebRequest -Uri $url -OutFile $localPath -UseBasicParsing
+
+    Write-Status "Installing: $fileName" "Green"
+
+    # Autodesk web installers silent flag = -q (confirmed working for 2021–2026)
+    try {
+        $process = Start-Process -FilePath $localPath `
+            -ArgumentList "-q" `
+            -Wait -PassThru -NoNewWindow `
+            -RedirectStandardOutput $logFile `
+            -RedirectStandardError "$logFile.err" `
+            -ErrorAction Stop
+
+        $exit = $process.ExitCode
+        if ($exit -eq 0 -or $exit -eq 3010 -or $exit -eq 1641) {
+            Write-Status "  SUCCESS (exit $exit)" "Green"
+        } else {
+            Write-Status "  Exit $exit — check log: $logFile" "Yellow"
+        }
+    }
+    catch {
+        Write-Status "  Error: $_" "Red"
+    }
+
+    Start-Sleep -Seconds 30   # give network breathing room
 }
-else {
-    #Get all.exe files, sorted by name ascending (matches top-to bottom in Explorer: Autodesk first, then Revit oldest to newest)
-    $autodeskExecs = Get-ChildItem -Path $autodeskFolder -File -Filter "*.exe" | Sort-Object Name
 
-    foreach ($exe in $autodeskExecs) {
-        #Collect data
-        $exePath = $exe.Fullname
-        $logFile = "$env:TEMP\Autodesk-$($exe.BaseName)-install.log"
-        $errFile = "$logFile.err"
+Remove-Item $tempFolder -Recurse -Force -ErrorAction SilentlyContinue
 
-        Write-Status "Installing: $($exe.Name)" "Green"
-
-        # Silent args trials (Autodesk web installers prefer -q)
-        $argsTrials = @(
-            "-q",                        # Primary: quiet mode (recommended for Revit/AutoCAD web installers)
-            "-q /w /norestart",          # Quiet + wait + no reboot
-            "--silent",                  # Alternative silent
-            "/quiet /norestart"          # MSI-style fallback
-        )
-
-        $success = $false
-        foreach ($args in $argsTrials) {
-            try {
-                $process = Start-Process -FilePath $exePath `
-                    -ArgumentList $args `
-                    -Wait -PassThru -NoNewWindow `
-                    -RedirectStandardOutput $logFile `
-                    -RedirectStandardError $errFile `
-                    -ErrorAction Stop
-
-                $exit = $process.ExitCode
-                if ($exit -eq 0 -or $exit -eq 3010 -or $exit -eq 1641) {
-                    Write-Status "  Success (exit $exit) with args: $args" "Green"
-                    $success = $true
-                    break
-                }
-                else {
-                    Write-Status "  Exit $exit with args '$args' - trying next..." "Yellow"
-                }
-            }
-            catch {
-                Write-Warning "  Error running $($exe.Name) with '$args': $_"
-            }
-        }
-        if (-not $success) {
-            Write-Status "  Failed all attempts for $($exe.Name). Check logs: $logFile / $errFile" "Red"
-            Write-Status "  Tip: Run manually with -q first. For full silent/no prompts, create deployment in Autodesk Account (serial/key/license server) and use -q -m path\to\config.xml" "Magenta"
-        }
-        # Small pause between large installs (helps with downloads/network)
-        Start-Sleep -Seconds 30
-    }
-
-    # Reboot check after all Autodesk (these can trigger pending reboots)
-    if (Test-PendingReboot) {
-        Write-Status "Reboot pending after Autodesk installs - restarting in 60 seconds (Ctrl+C to cancel)" "Yellow"
-        Start-Sleep -Seconds 60
-        Restart-Computer -Force
-    }
+# Reboot check
+if (Test-PendingReboot) {
+    Write-Status "Reboot pending after Autodesk — restarting in 60s (Ctrl+C to cancel)" "Yellow"
+    Start-Sleep -Seconds 60
+    Restart-Computer -Force
 }
 
 # -------------------------------
