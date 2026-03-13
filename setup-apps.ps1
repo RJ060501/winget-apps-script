@@ -161,7 +161,7 @@ foreach ($url in $autodeskDownloads) {
         $process = Start-Process -FilePath $localPath `
             -ArgumentList "-q" `
             -Verb RunAs `
-            -Wait -PassThru -NoNewWindow `
+            -Wait -PassThru `
             -RedirectStandardOutput $logFile `
             -RedirectStandardError "$logFile.err" `
             -ErrorAction Stop
