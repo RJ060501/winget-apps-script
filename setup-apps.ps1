@@ -102,17 +102,19 @@ Write-Host "Apps installed! Some apps may require a restart or manual login/setu
 
 Write-Status "Downloading & installing Autodesk products from GitHub Releases (AutoCAD 2026 first, then Revit 2021→2026)..." "Cyan"
 
+#https://github.com/RJ060501/winget-apps-script/releases/tag/custom_apps
 # === YOUR RELEASE ASSETS URLs (update once after uploading) ===
 $autodeskDownloads = @(
-    "https://github.com/RJ060501/winget-apps-script/releases/download/autodesk-installers-v1/AutoCAD_2026_English-US-en-US_setup_webinstall.exe",
-    "https://github.com/RJ060501/winget-apps-script/releases/download/autodesk-installers-v1/Revit_2021_Ship_20200715_r4_Win_64bit_....exe",
-    "https://github.com/RJ060501/winget-apps-script/releases/download/autodesk-installers-v1/Revit_2022_Ship_20210224_RTC_Win_64bit_....exe",
-    "https://github.com/RJ060501/winget-apps-script/releases/download/autodesk-installers-v1/Revit_2023_1_0_1_Win_64bit_di_ML_setup.exe",
-    "https://github.com/RJ060501/winget-apps-script/releases/download/autodesk-installers-v1/Revit_2024_3_ML_setup_webinstall.exe",
-    "https://github.com/RJ060501/winget-apps-script/releases/download/autodesk-installers-v1/Revit_2025_4_2_ML_setup_webinstall.exe",
-    "https://github.com/RJ060501/winget-apps-script/releases/download/autodesk-installers-v1/Revit_2026_2_ML_setup_webinstall.exe"
+    "https://github.com/RJ060501/winget-apps-script/releases/tag/custom_apps/AutoCAD_2026_English-US-en-US_setup_webinstall.exe",
+    "https://github.com/RJ060501/winget-apps-script/releases/tag/custom_apps/Revit_2021_Ship_20200715_r4_Win_64bit_di_cs-CZ_setup_webinstall.exe",
+    "https://github.com/RJ060501/winget-apps-script/releases/tag/custom_apps/Revit_2022_Ship_20210224_RTC_Win_64bit_di_cs-CZ_setup_webinstall.exe",
+    "https://github.com/RJ060501/winget-apps-script/releases/tag/custom_apps/Revit_2023_1_8_0_1_Win_64bit_di_ML_setup_webinstall.exe",
+    "https://github.com/RJ060501/winget-apps-script/releases/tag/custom_apps/Revit_2024_3_3_ML_setup_webinstall.exe",
+    "https://github.com/RJ060501/winget-apps-script/releases/tag/custom_apps/Revit_2025_4_2_ML_setup_webinstall.exe",
+    "https://github.com/RJ060501/winget-apps-script/releases/tag/custom_apps/Revit_2026_2_ML_setup_webinstall.exe"
 )
 
+#A folder that gets created and deleted at the end of the process
 $tempFolder = "$env:TEMP\AutodeskInstallers"
 New-Item -Path $tempFolder -ItemType Directory -Force | Out-Null
 
