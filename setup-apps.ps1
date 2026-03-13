@@ -58,7 +58,8 @@ if (-not $SkipDomainJoin) {
         Add-Computer -DomainName $domain -Credential $cred -Force -Restart
         Write-Status "Domain join initiated — rebooting" "Yellow"
         exit
-    } else {
+    }
+    else {
         Write-Status "Already domain-joined" "Gray"
     }
 }
@@ -89,13 +90,79 @@ Write-Host "Apps installed! Some apps may require a restart or manual login/setu
 #  6. Custom / non-winget installs
 # -------------------------------
 # Sophos - (adjust path)
-if (-not (Get-Service -Name "Sophos*")) {
-    Write-Status "Installing Sophos Endpoint..."
-    $sophosPath = "\\Vbs6\data\Programs\Sophos Cloud Antivirus\SophosSetup.exe"
-    if (Test-Path $sophosPath) {
-        Start-Process $sophosPath -ArgumentList "--quiet" -Wait
-    } else {
-        Write-Status "Sophos installer not found at $sophosPath" "Yellow"
+# if (-not (Get-Service -Name "Sophos*" -ErrorAction SilentlyContinue)) {
+#     Write-Status "Installing Sophos Endpoint..."
+#     $sophosPath = "\\Vbs6\data\Programs\Sophos Cloud Antivirus\SophosSetup.exe"
+#     if (Test-Path $sophosPath) {
+#         Start-Process $sophosPath -ArgumentList "--quiet" -Wait
+#     } else {
+#         Write-Status "Sophos installer not found at $sophosPath" "Yellow"
+#     }
+# }
+
+Write-Status "Installing Autodesk products: Auto CAD 2026 first, then Revit 2021 -> 2026..."
+
+$autodeskFolder = "I:\Ryan Russell\Fresh\Autodesk"
+
+if (-not(Test-Path $autodeskFolder)) {
+    Write-Status "Autodesk folder not found at $autodeskFolder - Skipping" "Yellow"
+}
+else {
+    #Get all.exe files, sorted by name ascending (matches top-to bottom in Explorer: Autodesk first, then Revit oldest to newest)
+    $autodeskExecs = Get-ChildItem -Path $autodeskFolder -File -Filter "*.exe" | Sort-Object Name
+
+    foreach ($exe in $autodeskExecs) {
+        #Collect data
+        $exePath = $exe.Fullname
+        $logFile = "$env:TEMP\Autodesk-$($exe.BaseName)-install.log"
+        $errFile = "$logFile.err"
+
+        Write-Status "Installing: $($exe.Name)" "Green"
+
+        # Silent args trials (Autodesk web installers prefer -q)
+        $argsTrials = @(
+            "-q",                        # Primary: quiet mode (recommended for Revit/AutoCAD web installers)
+            "-q /w /norestart",          # Quiet + wait + no reboot
+            "--silent",                  # Alternative silent
+            "/quiet /norestart"          # MSI-style fallback
+        )
+
+        try {
+            $process = Start-Process -FilePath $exePath `
+                -ArgumentList $args `
+                -Wait -PassThru -NoNewWindow `
+                -RedirectStandardOutput $logFile `
+                -RedirectStandardError $errFile `
+                -ErrorAction Stop
+
+            $exit = $process.ExitCode
+            if ($exit -eq 0 -or $exit -eq 3010 -or $exit -eq 1641) {
+                Write-Status "  Success (exit $exit) with args: $args" "Green"
+                $success = $true
+                break
+            }
+            else {
+                Write-Status "  Exit $exit with args '$args' - trying next..." "Yellow"
+            }
+        }
+        catch {
+            Write-Warning "  Error running $($exe.Name) with '$args': $_"
+        }
+    }
+
+    if (-not $success) {
+        Write-Status "  Failed all attempts for $($exe.Name). Check logs: $logFile / $errFile" "Red"
+        Write-Status "  Tip: Run manually with -q first. For full silent/no prompts, create deployment in Autodesk Account (serial/key/license server) and use -q -m path\to\config.xml" "Magenta"
+    }
+
+    # Small pause between large installs (helps with downloads/network)
+    Start-Sleep -Seconds 30
+    
+    # Reboot check after all Autodesk (these can trigger pending reboots)
+    if (Test-PendingReboot) {
+        Write-Status "Reboot pending after Autodesk installs - restarting in 60 seconds (Ctrl+C to cancel)" "Yellow"
+        Start-Sleep -Seconds 60
+        Restart-Computer -Force
     }
 }
 
@@ -103,7 +170,8 @@ if (-not (Get-Service -Name "Sophos*")) {
 #  7. Power settings (High Performance, skip laptops)
 # -------------------------------
 $battery = Get-CimInstance -ClassName Win32_Battery
-if ($null -eq $battery -or $battery.BatteryStatus -eq 0) {   # Desktop
+if ($null -eq $battery -or $battery.BatteryStatus -eq 0) {
+    # Desktop
     Write-Status "Setting High Performance power plan (desktop)"
     powercfg /setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c
     powercfg -change -monitor-timeout-ac 30    # 30 min screen
