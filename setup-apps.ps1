@@ -96,13 +96,15 @@ Write-Status "Launching non-elevated PowerShell for Autodesk installs..." "Cyan"
 # Create a temporary sub-script that runs non-elevated
 $autodeskSubScript = "$env:TEMP\Install-Autodesk-NonElevated.ps1"
 
-@"
-# Non-elevated Autodesk installer sub-script
-Write-Host "Non-elevated Autodesk installer running..." -ForegroundColor Cyan
-Write-Status "Downloading & installing Autodesk products from GitHub Releases (AutoCAD 2026 first, then Revit 2021→2026)..." "Cyan"
+@'
+# Non-elevated Autodesk sub-script
 
-#https://github.com/RJ060501/winget-apps-script/releases/tag/custom_apps
-# === YOUR RELEASE ASSETS URLs (update once after uploading) ===
+function Write-Status {
+    param([string]$Message, [string]$Color = "Green")
+    Write-Host $Message -ForegroundColor $Color
+}
+
+Write-Status "Non-elevated Autodesk installer running..." "Cyan"
 $autodeskDownloads = @(
     "https://github.com/RJ060501/winget-apps-script/releases/tag/custom_apps/AutoCAD_2026_English-US-en-US_setup_webinstall.exe",
     "https://github.com/RJ060501/winget-apps-script/releases/tag/custom_apps/Revit_2021_Ship_20200715_r4_Win_64bit_di_cs-CZ_setup_webinstall.exe",
@@ -113,63 +115,63 @@ $autodeskDownloads = @(
     "https://github.com/RJ060501/winget-apps-script/releases/tag/custom_apps/Revit_2026_2_ML_setup_webinstall.exe"
 )
 
-#A folder that gets created and deleted at the end of the process
-`$tempFolder = "`$env:TEMP\AutodeskInstallers"
-New-Item -Path `$tempFolder -ItemType Directory -Force | Out-Null
+$tempFolder = "$env:TEMP\AutodeskInstallers"
+New-Item -Path $tempFolder -ItemType Directory -Force | Out-Null
 
-foreach (`$url in `$autodeskDownloads) {
-    `$fileName = [System.IO.Path]::GetFileName(`$url)
-    `$localPath = Join-Path `$tempFolder `$fileName
+foreach ($url in $autodeskDownloads) {
+    $fileName = [System.IO.Path]::GetFileName($url)
+    $localPath = Join-Path $tempFolder $fileName
 
-    Write-Host "Downloading: `$fileName" -ForegroundColor Yellow
+    Write-Status "Downloading: $fileName" "Yellow"
 
-    `$ProgressPreference = 'SilentlyContinue'
-    & curl.exe -L -o `$localPath `$url --retry 3 --retry-delay 5 --fail --silent --show-error
+    $ProgressPreference = 'SilentlyContinue'
+    & curl.exe -L -o $localPath $url --retry 3 --retry-delay 5 --fail --silent --show-error
 
-    if (Test-Path `$localPath) {
-        Write-Host "  Download success" -ForegroundColor Green
+    if (Test-Path $localPath) {
+        Write-Status "  Download success" "Green"
 
-        Write-Host "Installing: `$fileName" -ForegroundColor Green
+        Write-Status "Installing: $fileName" "Green"
 
         try {
             Add-Type -AssemblyName System.Windows.Forms
             [System.Windows.Forms.Application]::DoEvents()
 
-            `$psi = New-Object System.Diagnostics.ProcessStartInfo
-            `$psi.FileName = `$localPath
-            `$psi.Arguments = "-q"
-            `$psi.UseShellExecute = `$true           # Mimics double-click
-            `$psi.WorkingDirectory = `$tempFolder
+            $psi = New-Object System.Diagnostics.ProcessStartInfo
+            $psi.FileName = $localPath
+            $psi.Arguments = "-q"
+            $psi.UseShellExecute = $true
+            $psi.WorkingDirectory = $tempFolder
 
-            `$process = [System.Diagnostics.Process]::Start(`$psi)
-            `$process.WaitForExit()
-            `$exit = `$process.ExitCode
+            $process = [System.Diagnostics.Process]::Start($psi)
+            $process.WaitForExit()
+            $exit = $process.ExitCode
 
-            if (`$exit -eq 0 -or `$exit -eq 3010 -or `$exit -eq 1641) {
-                Write-Host "  SUCCESS (exit `$exit)" -ForegroundColor Green
+            if ($exit -eq 0 -or $exit -eq 3010 -or $exit -eq 1641) {
+                Write-Status "  SUCCESS (exit $exit)" "Green"
             } else {
-                Write-Host "  Exit `$exit" -ForegroundColor Yellow
+                Write-Status "  Exit $exit" "Yellow"
             }
         }
         catch {
-            Write-Host "  Install error: `$_" -ForegroundColor Red
+            Write-Status "  Install error: $_" "Red"
         }
 
         Start-Sleep -Seconds 30
     } else {
-        Write-Host "  Download failed for `$fileName" -ForegroundColor Red
+        Write-Status "  Download failed for $fileName" "Red"
     }
 }
 
-Remove-Item `$tempFolder -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item $tempFolder -Recurse -Force -ErrorAction SilentlyContinue
 
-Write-Host "Autodesk installs complete in non-elevated context." -ForegroundColor Cyan
+Write-Status "Autodesk installs complete in non-elevated context." "Cyan"
+
 if (Test-Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending') {
-    Write-Host "Reboot pending — restarting in 60 seconds..." -ForegroundColor Yellow
+    Write-Status "Reboot pending — restarting in 60 seconds..." "Yellow"
     Start-Sleep -Seconds 60
     Restart-Computer -Force
 }
-"@ | Set-Content -Path $autodeskSubScript -Encoding UTF8
+'@ | Set-Content -Path $autodeskSubScript -Encoding UTF8
 
 # Launch the sub-script NON-ELEVATED
 Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$autodeskSubScript`"" -NoNewWindow
