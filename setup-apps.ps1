@@ -127,37 +127,38 @@ else {
             "/quiet /norestart"          # MSI-style fallback
         )
 
-        try {
-            $process = Start-Process -FilePath $exePath `
-                -ArgumentList $args `
-                -Wait -PassThru -NoNewWindow `
-                -RedirectStandardOutput $logFile `
-                -RedirectStandardError $errFile `
-                -ErrorAction Stop
+        $success = $false
+        foreach ($args in $argsTrials) {
+            try {
+                $process = Start-Process -FilePath $exePath `
+                    -ArgumentList $args `
+                    -Wait -PassThru -NoNewWindow `
+                    -RedirectStandardOutput $logFile `
+                    -RedirectStandardError $errFile `
+                    -ErrorAction Stop
 
-            $exit = $process.ExitCode
-            if ($exit -eq 0 -or $exit -eq 3010 -or $exit -eq 1641) {
-                Write-Status "  Success (exit $exit) with args: $args" "Green"
-                $success = $true
-                break
+                $exit = $process.ExitCode
+                if ($exit -eq 0 -or $exit -eq 3010 -or $exit -eq 1641) {
+                    Write-Status "  Success (exit $exit) with args: $args" "Green"
+                    $success = $true
+                    break
+                }
+                else {
+                    Write-Status "  Exit $exit with args '$args' - trying next..." "Yellow"
+                }
             }
-            else {
-                Write-Status "  Exit $exit with args '$args' - trying next..." "Yellow"
+            catch {
+                Write-Warning "  Error running $($exe.Name) with '$args': $_"
             }
         }
-        catch {
-            Write-Warning "  Error running $($exe.Name) with '$args': $_"
+        if (-not $success) {
+            Write-Status "  Failed all attempts for $($exe.Name). Check logs: $logFile / $errFile" "Red"
+            Write-Status "  Tip: Run manually with -q first. For full silent/no prompts, create deployment in Autodesk Account (serial/key/license server) and use -q -m path\to\config.xml" "Magenta"
         }
+        # Small pause between large installs (helps with downloads/network)
+        Start-Sleep -Seconds 30
     }
 
-    if (-not $success) {
-        Write-Status "  Failed all attempts for $($exe.Name). Check logs: $logFile / $errFile" "Red"
-        Write-Status "  Tip: Run manually with -q first. For full silent/no prompts, create deployment in Autodesk Account (serial/key/license server) and use -q -m path\to\config.xml" "Magenta"
-    }
-
-    # Small pause between large installs (helps with downloads/network)
-    Start-Sleep -Seconds 30
-    
     # Reboot check after all Autodesk (these can trigger pending reboots)
     if (Test-PendingReboot) {
         Write-Status "Reboot pending after Autodesk installs - restarting in 60 seconds (Ctrl+C to cancel)" "Yellow"
