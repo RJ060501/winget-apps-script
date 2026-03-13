@@ -81,6 +81,75 @@ if ($problemDevices) {
 }
 
 # -------------------------------
+#  4b. Windows Updates)
+# -------------------------------
+# Uses built-in Windows Update COM API — no PSWindowsUpdate or external publishers needed.
+ 
+Write-Status "Starting Windows Update process (native COM API)..." "Cyan"
+Write-Status "This may take a while. Script will loop until no updates remain." "Yellow"
+ 
+$updateRound = 0
+$maxRounds   = 6   # safety cap
+ 
+do {
+    $updateRound++
+    Write-Status "--- Windows Update Round $updateRound of $maxRounds ---" "Cyan"
+ 
+    try {
+        $updateSession  = New-Object -ComObject Microsoft.Update.Session
+        $updateSearcher = $updateSession.CreateUpdateSearcher()
+ 
+        Write-Status "Searching for updates..." "Gray"
+        $searchResult = $updateSearcher.Search("IsInstalled=0 and Type='Software' and IsHidden=0")
+ 
+        if ($searchResult.Updates.Count -eq 0) {
+            Write-Status "No more updates found. Windows is up to date!" "Green"
+            break
+        }
+ 
+        Write-Status "Found $($searchResult.Updates.Count) update(s). Downloading..." "Yellow"
+ 
+        $updatesToInstall = New-Object -ComObject Microsoft.Update.UpdateColl
+        foreach ($update in $searchResult.Updates) {
+            $updatesToInstall.Add($update) | Out-Null
+        }
+ 
+        $downloader        = $updateSession.CreateUpdateDownloader()
+        $downloader.Updates = $updatesToInstall
+        $downloader.Download() | Out-Null
+ 
+        Write-Status "Installing updates..." "Yellow"
+        $installer         = $updateSession.CreateUpdateInstaller()
+        $installer.Updates = $updatesToInstall
+        $installResult     = $installer.Install()
+ 
+        Write-Status "Install result code: $($installResult.ResultCode)  (2 = Success, 3 = Success w/ errors)" "Gray"
+ 
+        if ($installResult.RebootRequired -or (Test-PendingReboot)) {
+            Write-Status "Reboot required after update round $updateRound." "Yellow"
+            $restart = Read-Host "Restart now to continue patching? (Y/N)"
+            if ($restart -eq "Y" -or $restart -eq "y") {
+                Write-Status "Rebooting — re-run this script after restart to continue." "Yellow"
+                Restart-Computer -Force
+                exit
+            } else {
+                Write-Status "Skipping reboot. Some updates may not fully apply until rebooted." "Yellow"
+                break
+            }
+        }
+ 
+    } catch {
+        Write-Status "Windows Update error on round $updateRound`: $_" "Red"
+        break
+    }
+ 
+} while ($updateRound -lt $maxRounds)
+ 
+if ($updateRound -ge $maxRounds) {
+    Write-Status "Reached max update rounds ($maxRounds). Verify in Settings > Windows Update." "Yellow"
+}
+
+# -------------------------------
 #  5. Install Applications
 # -------------------------------
 $jsonUrl = "https://raw.githubusercontent.com/RJ060501/winget-apps-script/refs/heads/main/winget-apps.json"  # your URL here
