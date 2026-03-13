@@ -117,16 +117,44 @@ $tempFolder = "$env:TEMP\AutodeskInstallers"
 New-Item -Path $tempFolder -ItemType Directory -Force | Out-Null
 
 foreach ($url in $autodeskDownloads) {
-    $fileName = Split-Path $url -Leaf
+    $fileName = [System.IO.Path]::GetFileName($url)
     $localPath = Join-Path $tempFolder $fileName
-    $logFile = "$env:TEMP\Autodesk-$($fileName.BaseName)-install.log"
+    $logFile = "$env:TEMP\Autodesk-$($fileName -replace '\.exe$','')-install.log"
 
     Write-Status "Downloading: $fileName" "Yellow"
-    Invoke-WebRequest -Uri $url -OutFile $localPath -UseBasicParsing
+
+    $downloadSuccess = $false
+    $maxRetries = 3
+
+    for ($retry = 1; $retry -le $maxRetries; $retry++) {
+        try {
+            # Suppress progress bar for faster/safer downloads
+            $ProgressPreference = 'SilentlyContinue'
+
+            # Prefer curl.exe (built-in, more reliable for GitHub large-ish files)
+            & curl.exe -L -o $localPath $url --retry 3 --retry-delay 5 --fail --silent --show-error
+            if (Test-Path $localPath) {
+                Write-Status "  Download success on attempt $retry" "Green"
+                $downloadSuccess = $true
+                break
+            }
+        }
+        catch {
+            Write-Status "  Retry $retry/$maxRetries failed: $_" "Yellow"
+            Start-Sleep -Seconds 10
+        }
+        finally {
+            $ProgressPreference = 'Continue'
+        }
+    }
+
+    if (-not $downloadSuccess) {
+        Write-Status "  Failed to download $fileName after retries. Skipping install." "Red"
+        continue
+    }
 
     Write-Status "Installing: $fileName" "Green"
 
-    # Autodesk web installers silent flag = -q (confirmed working for 2021–2026)
     try {
         $process = Start-Process -FilePath $localPath `
             -ArgumentList "-q" `
@@ -143,17 +171,17 @@ foreach ($url in $autodeskDownloads) {
         }
     }
     catch {
-        Write-Status "  Error: $_" "Red"
+        Write-Status "  Install error: $_" "Red"
     }
 
-    Start-Sleep -Seconds 30   # give network breathing room
+    Start-Sleep -Seconds 30  # breathing room between large installs
 }
 
 Remove-Item $tempFolder -Recurse -Force -ErrorAction SilentlyContinue
 
-# Reboot check
+# Reboot check...
 if (Test-PendingReboot) {
-    Write-Status "Reboot pending after Autodesk — restarting in 60s (Ctrl+C to cancel)" "Yellow"
+    Write-Status "Reboot pending after Autodesk — restarting in 60s..." "Yellow"
     Start-Sleep -Seconds 60
     Restart-Computer -Force
 }
