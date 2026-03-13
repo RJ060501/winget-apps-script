@@ -162,8 +162,8 @@ foreach ($url in $autodeskDownloads) {
             -ArgumentList "-q" `
             -Verb RunAs `
             -Wait -PassThru `
-            -RedirectStandardOutput $logFile `
-            -RedirectStandardError "$logFile.err" `
+            # -RedirectStandardOutput $logFile `
+            # -RedirectStandardError "$logFile.err" `
             -ErrorAction Stop
 
         $exit = $process.ExitCode
