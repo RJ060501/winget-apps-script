@@ -346,34 +346,6 @@ $policiesJson = @"
 $policiesJson | Set-Content -Path "$firefoxPoliciesDir\policies.json" -Encoding UTF8
 Write-Status "Firefox policies.json written (homepage + uBlock Origin)." "Green"
 Write-Status "uBlock will auto-install on first Firefox launch." "Gray"
-
-# --- Remove taskbar pins: MS Store, Edge, Mail ---
-Write-Status "Cleaning up default taskbar pins..." "Cyan"
-
-# Taskbar pins in Windows 11 live in a per-user binary file.
-# The cleanest scriptable approach is to remove the shortcuts from
-# the common pinned apps location and the user's TaskBar folder.
-$taskbarPinsToRemove = @(
-    "*Microsoft Edge*",
-    "*Microsoft Store*",
-    "*Mail*"
-)
-
-# Windows 10 taskbar shortcuts (Quick Launch style)
-$tbPath10 = "$env:APPDATA\Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar"
-if (Test-Path $tbPath10) {
-    foreach ($pattern in $taskbarPinsToRemove) {
-        Get-ChildItem -Path $tbPath10 -Filter $pattern -ErrorAction SilentlyContinue |
-            Remove-Item -Force -ErrorAction SilentlyContinue
-    }
-}
- 
-# Windows 11 taskbar layout — remove from common start/taskbar layout if present
-$tbPath11 = "$env:LOCALAPPDATA\Packages\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\LocalState"
-if (Test-Path $tbPath11) {
-    Write-Status "Windows 11 taskbar detected — shortcuts removed where possible." "Gray"
-    Write-Status "Note: Win11 may require a manual unpin for Edge/Store/Mail on first login." "Yellow"
-}
  
 # Remove Edge from taskbar via registry (common OEM pin location)
 $edgeTaskbarKey = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Taskband"
@@ -381,12 +353,6 @@ if (Test-Path $edgeTaskbarKey) {
     # Clearing FavoritesResolve forces taskbar to rebuild without OEM pins on next Explorer restart
     Remove-ItemProperty -Path $edgeTaskbarKey -Name "FavoritesResolve" -ErrorAction SilentlyContinue
 }
- 
-# Restart Explorer to apply taskbar changes
-Write-Status "Restarting Explorer to apply taskbar changes..." "Gray"
-Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue
-Start-Sleep -Seconds 3
-Start-Process explorer.exe
- 
-Write-Status "Taskbar cleanup complete." "Green"
+
+Write-Status "Reminder: Taskbar items will need to be removed manually." "Yellow"
 Write-Status "Reminder: Startup items should be reviewed manually in Task Manager > Startup." "Yellow"
