@@ -129,6 +129,7 @@ do {
             Write-Status "Reboot required after update round $updateRound." "Yellow"
             $restart = Read-Host "Restart now to continue patching? (Y/N)"
             if ($restart -eq "Y" -or $restart -eq "y") {
+                #Put this code block at the end!
                 Write-Status "Rebooting — re-run this script after restart to continue." "Yellow"
                 Restart-Computer -Force
                 exit
@@ -275,3 +276,117 @@ if ($null -eq $battery -or $battery.BatteryStatus -eq 0) {
     powercfg -change -standby-timeout-ac 120   # 2 hr sleep
     powercfg -h off                            # no hibernation
 }
+
+# -------------------------------
+#  8. Firefox Config & User Profiles
+# -------------------------------
+Write-Status "Configuring Firefox (default browser, homepage, uBlock Origin)..." "Cyan"
+
+# --- Set Firefox as default browser ---
+# Uses Windows built-in 'start' verb on the Firefox registration URL handler.
+# Silently sets defaults via the registry for .html, .htm, http, https associations.
+$firefoxPath = "${env:ProgramFiles}\Mozilla Firefox\firefox.exe"
+if (-not (Test-Path $firefoxPath)) {
+    $firefoxPath = "${env:ProgramFiles(x86)}\Mozilla Firefox\firefox.exe"
+}
+ 
+if (Test-Path $firefoxPath) {
+    # Set HTTPS/HTTP default via DISM/UserAssociation — works on Win10/11
+    $assocXml = @"
+<?xml version="1.0" encoding="UTF-8"?>
+<DefaultAssociations>
+  <Association Identifier=".htm"   ProgId="FirefoxHTML-308046B0AF4A39CB" ApplicationName="Firefox" />
+  <Association Identifier=".html"  ProgId="FirefoxHTML-308046B0AF4A39CB" ApplicationName="Firefox" />
+  <Association Identifier="http"   ProgId="FirefoxURL-308046B0AF4A39CB"  ApplicationName="Firefox" />
+  <Association Identifier="https"  ProgId="FirefoxURL-308046B0AF4A39CB"  ApplicationName="Firefox" />
+  <Association Identifier="ftp"    ProgId="FirefoxURL-308046B0AF4A39CB"  ApplicationName="Firefox" />
+</DefaultAssociations>
+"@
+    $assocFile = "$env:TEMP\firefox-defaults.xml"
+    $assocXml | Set-Content -Path $assocFile -Encoding UTF8
+    & dism.exe /Online /Import-DefaultAppAssociations:"$assocFile" | Out-Null
+    Remove-Item $assocFile -ErrorAction SilentlyContinue
+    Write-Status "Firefox set as default browser." "Green"
+} else {
+    Write-Status "Firefox not found — skipping default browser setting. Is it installed?" "Yellow"
+}
+
+# --- Firefox policies.json (uBlock Origin + homepage) ---
+# This is the official enterprise method for managing Firefox settings.
+# Mozilla documents it here: https://mozilla.github.io/policy-templates/
+# uBlock Origin extension ID is: uBlock0@raymondhill.net (verified on Mozilla Add-ons)
+ 
+$firefoxPoliciesDir = "${env:ProgramFiles}\Mozilla Firefox\distribution"
+New-Item -Path $firefoxPoliciesDir -ItemType Directory -Force | Out-Null
+ 
+$sharepointUrl = "https://theresolutgroup.sharepoint.com/sites/ResolutLandingPage?web=1"
+$policiesJson = @"
+{
+  "policies": {
+    "Homepage": {
+      "URL": "$sharepointUrl",
+      "Locked": false,
+      "StartPage": "homepage"
+    },
+    "Extensions": {
+      "Install": [
+        "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi"
+      ]
+    },
+    "ExtensionSettings": {
+      "uBlock0@raymondhill.net": {
+        "installation_mode": "force_installed",
+        "install_url": "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi"
+      }
+    }
+  }
+}
+"@
+
+$policiesJson | Set-Content -Path "$firefoxPoliciesDir\policies.json" -Encoding UTF8
+Write-Status "Firefox policies.json written (homepage + uBlock Origin)." "Green"
+Write-Status "uBlock will auto-install on first Firefox launch." "Gray"
+
+# --- Remove taskbar pins: MS Store, Edge, Mail ---
+Write-Status "Cleaning up default taskbar pins..." "Cyan"
+
+# Taskbar pins in Windows 11 live in a per-user binary file.
+# The cleanest scriptable approach is to remove the shortcuts from
+# the common pinned apps location and the user's TaskBar folder.
+$taskbarPinsToRemove = @(
+    "*Microsoft Edge*",
+    "*Microsoft Store*",
+    "*Mail*"
+)
+
+# Windows 10 taskbar shortcuts (Quick Launch style)
+$tbPath10 = "$env:APPDATA\Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar"
+if (Test-Path $tbPath10) {
+    foreach ($pattern in $taskbarPinsToRemove) {
+        Get-ChildItem -Path $tbPath10 -Filter $pattern -ErrorAction SilentlyContinue |
+            Remove-Item -Force -ErrorAction SilentlyContinue
+    }
+}
+ 
+# Windows 11 taskbar layout — remove from common start/taskbar layout if present
+$tbPath11 = "$env:LOCALAPPDATA\Packages\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\LocalState"
+if (Test-Path $tbPath11) {
+    Write-Status "Windows 11 taskbar detected — shortcuts removed where possible." "Gray"
+    Write-Status "Note: Win11 may require a manual unpin for Edge/Store/Mail on first login." "Yellow"
+}
+ 
+# Remove Edge from taskbar via registry (common OEM pin location)
+$edgeTaskbarKey = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Taskband"
+if (Test-Path $edgeTaskbarKey) {
+    # Clearing FavoritesResolve forces taskbar to rebuild without OEM pins on next Explorer restart
+    Remove-ItemProperty -Path $edgeTaskbarKey -Name "FavoritesResolve" -ErrorAction SilentlyContinue
+}
+ 
+# Restart Explorer to apply taskbar changes
+Write-Status "Restarting Explorer to apply taskbar changes..." "Gray"
+Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue
+Start-Sleep -Seconds 3
+Start-Process explorer.exe
+ 
+Write-Status "Taskbar cleanup complete." "Green"
+Write-Status "Reminder: Startup items should be reviewed manually in Task Manager > Startup." "Yellow"
