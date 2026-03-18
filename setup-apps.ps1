@@ -24,45 +24,45 @@ function Test-PendingReboot {
     return $false
 }
 
-# -------------------------------
-#  1. Gather Info
-# -------------------------------
-Write-Status "New Computer Setup - Resolut Style" "Cyan"
+# # -------------------------------
+# #  1. Gather Info
+# # -------------------------------
+# Write-Status "New Computer Setup - Resolut Style" "Cyan"
 
-if (-not $UserAccountName) {
-    $UserAccountName = Read-Host "Enter user logon name (e.g. jsmith)"
-}
-$computerName = "$($UserAccountName.Substring(0,1).ToUpper())$($UserAccountName.Substring(1))${ComputerSuffix}"
-Write-Status "Target computer name: $computerName"
-Write-Status "User: $UserAccountName    Role: $Role"
+# if (-not $UserAccountName) {
+#     $UserAccountName = Read-Host "Enter user logon name (e.g. jsmith)"
+# }
+# $computerName = "$($UserAccountName.Substring(0,1).ToUpper())$($UserAccountName.Substring(1))${ComputerSuffix}"
+# Write-Status "Target computer name: $computerName"
+# Write-Status "User: $UserAccountName    Role: $Role"
 
-# -------------------------------
-#  2. Rename computer (if needed)
-# -------------------------------
-$currentName = $env:COMPUTERNAME
-if ($currentName -ne $computerName) {
-    Write-Status "Renaming computer to $computerName ..."
-    Rename-Computer -NewName $computerName -Force -Restart
-    Write-Status "Restart required — run script again after reboot" "Yellow"
-    exit
-}
+# # -------------------------------
+# #  2. Rename computer (if needed)
+# # -------------------------------
+# $currentName = $env:COMPUTERNAME
+# if ($currentName -ne $computerName) {
+#     Write-Status "Renaming computer to $computerName ..."
+#     Rename-Computer -NewName $computerName -Force -Restart
+#     Write-Status "Restart required — run script again after reboot" "Yellow"
+#     exit
+# }
 
-# -------------------------------
-#  3. Domain Join (if not already)
-# -------------------------------
-if (-not $SkipDomainJoin) {
-    $domain = "vbfa.com"
-    if ((Get-WmiObject Win32_ComputerSystem).Domain -ne $domain) {
-        Write-Status "Joining domain $domain ..."
-        $cred = Get-Credential -Message "Enter DOMAIN ADMIN credentials for join"
-        Add-Computer -DomainName $domain -Credential $cred -Force -Restart
-        Write-Status "Domain join initiated — rebooting" "Yellow"
-        exit
-    }
-    else {
-        Write-Status "Already domain-joined" "Gray"
-    }
-}
+# # -------------------------------
+# #  3. Domain Join (if not already)
+# # -------------------------------
+# if (-not $SkipDomainJoin) {
+#     $domain = "vbfa.com"
+#     if ((Get-WmiObject Win32_ComputerSystem).Domain -ne $domain) {
+#         Write-Status "Joining domain $domain ..."
+#         $cred = Get-Credential -Message "Enter DOMAIN ADMIN credentials for join"
+#         Add-Computer -DomainName $domain -Credential $cred -Force -Restart
+#         Write-Status "Domain join initiated — rebooting" "Yellow"
+#         exit
+#     }
+#     else {
+#         Write-Status "Already domain-joined" "Gray"
+#     }
+# }
 
 # -------------------------------
 #  4. Driver Check
@@ -354,5 +354,6 @@ if (Test-Path $edgeTaskbarKey) {
     Remove-ItemProperty -Path $edgeTaskbarKey -Name "FavoritesResolve" -ErrorAction SilentlyContinue
 }
 
+# --- Manual steps reminder ---
 Write-Status "Reminder: Taskbar items will need to be removed manually." "Yellow"
 Write-Status "Reminder: Startup items should be reviewed manually in Task Manager > Startup." "Yellow"
