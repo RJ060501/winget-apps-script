@@ -178,8 +178,8 @@ Write-Host "Apps installed! Some apps may require a restart or manual login/setu
 Write-Status "Starting custom installs..." "Cyan"
 
 $CustomDownloads = @(
-    "https://github.com/RJ060501/winget-apps-script/releases/tag/custom_apps/CTCBIMSuitesMultiUserSetup.msi",
-    "https://github.com/RJ060501/winget-apps-script/releases/tag/custom_apps/NaviateNexusMultiUserSetup.msi"
+    "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/CTCBIMSuitesMultiUserSetup.msi",
+    "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/NaviateNexusMultiUserSetup.msi"
 )
 
 $tempFolder = "$env:TEMP\CustomInstallers"
