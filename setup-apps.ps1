@@ -81,7 +81,7 @@ if ($problemDevices) {
 }
 
 # -------------------------------
-#  4b. Windows Updates)
+#  4b. Windows Updates
 # -------------------------------
 # Uses built-in Windows Update COM API — no PSWindowsUpdate or external publishers needed.
  
@@ -175,94 +175,97 @@ Write-Host "Apps installed! Some apps may require a restart or manual login/setu
 #  6. Custom / non-winget installs
 # -------------------------------
 
-# # Now switch to NON-ELEVATED context for Autodesk (and future custom installers)
-# Write-Status "Launching non-elevated PowerShell for Autodesk installs..." "Cyan"
+# Now switch to NON-ELEVATED context for Custom Installs (and future custom installers)
+Write-Status "Launching non-elevated PowerShell for custom installs..." "Cyan"
 
-# # Create a temporary sub-script that runs non-elevated
-# $autodeskSubScript = "$env:TEMP\Install-Autodesk-NonElevated.ps1"
+# Create a temporary sub-script that runs non-elevated
+$CustomInstallsSubScript = "$env:TEMP\Install-Custom-NonElevated.ps1"
 
-# @'
-# # Non-elevated Autodesk sub-script
+@'
+# Non-elevated custom installs sub-script
 
-# function Write-Status {
-#     param([string]$Message, [string]$Color = "Green")
-#     Write-Host $Message -ForegroundColor $Color
-# }
+#Helper function within scope
+function Write-Status {
+    param([string]$Message, [string]$Color = "Green")
+    Write-Host $Message -ForegroundColor $Color
+}
 
-# Write-Status "Non-elevated Autodesk installer running..." "Cyan"
-# $autodeskDownloads = @(
-#     "https://github.com/RJ060501/winget-apps-script/releases/tag/custom_apps/AutoCAD_2026_English-US-en-US_setup_webinstall.exe",
-#     "https://github.com/RJ060501/winget-apps-script/releases/tag/custom_apps/Revit_2021_Ship_20200715_r4_Win_64bit_di_cs-CZ_setup_webinstall.exe",
-#     "https://github.com/RJ060501/winget-apps-script/releases/tag/custom_apps/Revit_2022_Ship_20210224_RTC_Win_64bit_di_cs-CZ_setup_webinstall.exe",
-#     "https://github.com/RJ060501/winget-apps-script/releases/tag/custom_apps/Revit_2023_1_8_0_1_Win_64bit_di_ML_setup_webinstall.exe",
-#     "https://github.com/RJ060501/winget-apps-script/releases/tag/custom_apps/Revit_2024_3_3_ML_setup_webinstall.exe",
-#     "https://github.com/RJ060501/winget-apps-script/releases/tag/custom_apps/Revit_2025_4_2_ML_setup_webinstall.exe",
-#     "https://github.com/RJ060501/winget-apps-script/releases/tag/custom_apps/Revit_2026_2_ML_setup_webinstall.exe"
-# )
+Write-Status "Non-elevated Custom installer running..." "Cyan"
+$CTCBIMDownloads = @(
+    "https://github.com/RJ060501/winget-apps-script/releases/tag/custom_apps/AutoCAD_2026_English-US-en-US_setup_webinstall.exe",
+    "https://github.com/RJ060501/winget-apps-script/releases/tag/custom_apps/Revit_2021_Ship_20200715_r4_Win_64bit_di_cs-CZ_setup_webinstall.exe",
+    "https://github.com/RJ060501/winget-apps-script/releases/tag/custom_apps/Revit_2022_Ship_20210224_RTC_Win_64bit_di_cs-CZ_setup_webinstall.exe",
+    "https://github.com/RJ060501/winget-apps-script/releases/tag/custom_apps/Revit_2023_1_8_0_1_Win_64bit_di_ML_setup_webinstall.exe",
+    "https://github.com/RJ060501/winget-apps-script/releases/tag/custom_apps/Revit_2024_3_3_ML_setup_webinstall.exe",
+    "https://github.com/RJ060501/winget-apps-script/releases/tag/custom_apps/Revit_2025_4_2_ML_setup_webinstall.exe",
+    "https://github.com/RJ060501/winget-apps-script/releases/tag/custom_apps/Revit_2026_2_ML_setup_webinstall.exe",
+    "https://github.com/RJ060501/winget-apps-script/releases/tag/custom_apps/CTCBIMSuitesMultiUserSetup.msi",
+    "https://github.com/RJ060501/winget-apps-script/releases/tag/custom_apps/NaviateNexusMultiUserSetup.msi",
+)
 
-# $tempFolder = "$env:TEMP\AutodeskInstallers"
-# New-Item -Path $tempFolder -ItemType Directory -Force | Out-Null
+$tempFolder = "$env:TEMP\CustomInstallers"
+New-Item -Path $tempFolder -ItemType Directory -Force | Out-Null
 
-# foreach ($url in $autodeskDownloads) {
-#     $fileName = [System.IO.Path]::GetFileName($url)
-#     $localPath = Join-Path $tempFolder $fileName
+foreach ($url in $CustomDownloads) {
+    $fileName = [System.IO.Path]::GetFileName($url)
+    $localPath = Join-Path $tempFolder $fileName
 
-#     Write-Status "Downloading: $fileName" "Yellow"
+    Write-Status "Downloading: $fileName" "Yellow"
 
-#     $ProgressPreference = 'SilentlyContinue'
-#     & curl.exe -L -o $localPath $url --retry 3 --retry-delay 5 --fail --silent --show-error
+    $ProgressPreference = 'SilentlyContinue'
+    & curl.exe -L -o $localPath $url --retry 3 --retry-delay 5 --fail --silent --show-error
 
-#     if (Test-Path $localPath) {
-#         Write-Status "  Download success" "Green"
+    if (Test-Path $localPath) {
+        Write-Status "  Download success" "Green"
 
-#         Write-Status "Installing: $fileName" "Green"
+        Write-Status "Installing: $fileName" "Green"
 
-#         try {
-#             Add-Type -AssemblyName System.Windows.Forms
-#             [System.Windows.Forms.Application]::DoEvents()
+        try {
+            Add-Type -AssemblyName System.Windows.Forms
+            [System.Windows.Forms.Application]::DoEvents()
 
-#             $psi = New-Object System.Diagnostics.ProcessStartInfo
-#             $psi.FileName = $localPath
-#             $psi.Arguments = "-q"
-#             $psi.UseShellExecute = $true
-#             $psi.WorkingDirectory = $tempFolder
+            $psi = New-Object System.Diagnostics.ProcessStartInfo
+            $psi.FileName = $localPath
+            $psi.Arguments = "-q"
+            $psi.UseShellExecute = $true
+            $psi.WorkingDirectory = $tempFolder
 
-#             $process = [System.Diagnostics.Process]::Start($psi)
-#             $process.WaitForExit()
-#             $exit = $process.ExitCode
+            $process = [System.Diagnostics.Process]::Start($psi)
+            $process.WaitForExit()
+            $exit = $process.ExitCode
 
-#             if ($exit -eq 0 -or $exit -eq 3010 -or $exit -eq 1641) {
-#                 Write-Status "  SUCCESS (exit $exit)" "Green"
-#             } else {
-#                 Write-Status "  Exit $exit" "Yellow"
-#             }
-#         }
-#         catch {
-#             Write-Status "  Install error: $_" "Red"
-#         }
+            if ($exit -eq 0 -or $exit -eq 3010 -or $exit -eq 1641) {
+                Write-Status "  SUCCESS (exit $exit)" "Green"
+            } else {
+                Write-Status "  Exit $exit" "Yellow"
+            }
+        }
+        catch {
+            Write-Status "  Install error: $_" "Red"
+        }
 
-#         Start-Sleep -Seconds 30
-#     } else {
-#         Write-Status "  Download failed for $fileName" "Red"
-#     }
-# }
+        Start-Sleep -Seconds 30
+    } else {
+        Write-Status "  Download failed for $fileName" "Red"
+    }
+}
 
-# Remove-Item $tempFolder -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item $tempFolder -Recurse -Force -ErrorAction SilentlyContinue
 
-# Write-Status "Autodesk installs complete in non-elevated context." "Cyan"
+Write-Status "Custom installs complete in non-elevated context." "Cyan"
 
-# if (Test-Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending') {
-#     Write-Status "Reboot pending — restarting in 60 seconds..." "Yellow"
-#     Start-Sleep -Seconds 60
-#     Restart-Computer -Force
-# }
-# '@ | Set-Content -Path $autodeskSubScript -Encoding UTF8
+if (Test-Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending') {
+    Write-Status "Reboot pending — restarting in 60 seconds..." "Yellow"
+    Start-Sleep -Seconds 60
+    Restart-Computer -Force
+}
+'@ | Set-Content -Path $CustomInstallsSubScript -Encoding UTF8
 
-# # Launch the sub-script NON-ELEVATED
-# Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$autodeskSubScript`"" -NoNewWindow
+# Launch the sub-script NON-ELEVATED
+Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$CTCBIMSubScript`"" -NoNewWindow
 
-# Write-Status "Non-elevated Autodesk installer launched. Follow any UAC prompts if they appear." "Yellow"
-# Write-Status "Script will continue after sub-process finishes or you can close this window." "Cyan"
+Write-Status "Non-elevated CTCBIM installer launched. Follow any UAC prompts if they appear." "Yellow"
+Write-Status "Script will continue after sub-process finishes or you can close this window." "Cyan"
 
 # -------------------------------
 #  7. Power settings (High Performance, skip laptops)
