@@ -178,6 +178,14 @@ Write-Host "Apps installed! Some apps may require a restart or manual login/setu
 Write-Status "Starting custom installs..." "Cyan"
 
 $CustomDownloads = @(
+    "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/AutoCAD_2026_1_English-US_setup_webinstall.exe",
+    "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Revit_2021_Ship_20200715_r4_Win_64bit_di_cs-CZ_setup_webinstall.exe",
+    "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Revit_2022_Ship_20210224_RTC_Win_64bit_di_ML_setup_webinstall.exe",
+    "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Revit_2023_1_8_0_1_Win_64bit_di_ML_setup_webinstall.exe",
+    "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Revit_2024_3_3_ML_setup_webinstall.exe",
+    "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Revit_2025_4_2_ML_setup_webinstall.exe",
+    "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Revit_2026_2_ML_setup_webinstall.exe",
+
     "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/CTCBIMSuitesMultiUserSetup.msi",
     "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/NaviateNexusMultiUserSetup.msi"
 )
