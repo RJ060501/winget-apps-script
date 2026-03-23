@@ -191,7 +191,7 @@ function Write-Status {
 }
 
 Write-Status "Non-elevated Custom installer running..." "Cyan"
-$CTCBIMDownloads = @(
+$CustomDownloads = @(
     # "https://github.com/RJ060501/winget-apps-script/releases/tag/custom_apps/AutoCAD_2026_English-US-en-US_setup_webinstall.exe",
     # "https://github.com/RJ060501/winget-apps-script/releases/tag/custom_apps/Revit_2021_Ship_20200715_r4_Win_64bit_di_cs-CZ_setup_webinstall.exe",
     # "https://github.com/RJ060501/winget-apps-script/releases/tag/custom_apps/Revit_2022_Ship_20210224_RTC_Win_64bit_di_cs-CZ_setup_webinstall.exe",
@@ -262,9 +262,9 @@ if (Test-Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based S
 '@ | Set-Content -Path $CustomInstallsSubScript -Encoding UTF8
 
 # Launch the sub-script NON-ELEVATED
-Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$CTCBIMSubScript`"" -NoNewWindow
+Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$CustomInstallsMSubScript`"" -NoNewWindow
 
-Write-Status "Non-elevated CTCBIM installer launched. Follow any UAC prompts if they appear." "Yellow"
+Write-Status "Non-elevated Custom installer launched. Follow any UAC prompts if they appear." "Yellow"
 Write-Status "Script will continue after sub-process finishes or you can close this window." "Cyan"
 
 # -------------------------------
