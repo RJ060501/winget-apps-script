@@ -50,19 +50,19 @@ function Test-PendingReboot {
 # # -------------------------------
 # #  3. Domain Join (if not already)
 # # -------------------------------
-# if (-not $SkipDomainJoin) {
-#     $domain = "vbfa.com"
-#     if ((Get-WmiObject Win32_ComputerSystem).Domain -ne $domain) {
-#         Write-Status "Joining domain $domain ..."
-#         $cred = Get-Credential -Message "Enter DOMAIN ADMIN credentials for join"
-#         Add-Computer -DomainName $domain -Credential $cred -Force -Restart
-#         Write-Status "Domain join initiated — rebooting" "Yellow"
-#         exit
-#     }
-#     else {
-#         Write-Status "Already domain-joined" "Gray"
-#     }
-# }
+if (-not $SkipDomainJoin) {
+    $domain = "vbfa.com"
+    if ((Get-WmiObject Win32_ComputerSystem).Domain -ne $domain) {
+        Write-Status "Joining domain $domain ..."
+        $cred = Get-Credential -Message "Enter DOMAIN ADMIN credentials for join"
+        Add-Computer -DomainName $domain -Credential $cred # -Force -Restart
+        Write-Status "Domain join initiated — rebooting" "Yellow"
+        exit
+    }
+    else {
+        Write-Status "Already domain-joined" "Gray"
+    }
+}
 
 # -------------------------------
 #  4. Driver Check
@@ -117,78 +117,65 @@ Write-Host "Apps installed! Some apps may require a restart or manual login/setu
 # -------------------------------
 #  7. Firefox Config & User Profiles
 # -------------------------------
-Write-Status "Configuring Firefox (default browser, homepage, uBlock Origin)..." "Cyan"
 
-# --- Set Firefox as default browser ---
-# Uses Windows built-in 'start' verb on the Firefox registration URL handler.
-# Silently sets defaults via the registry for .html, .htm, http, https associations.
+Write-Status "Configuring Firefox (homepage, uBlock Origin)..." "Cyan"
+
 $firefoxPath = "${env:ProgramFiles}\Mozilla Firefox\firefox.exe"
 if (-not (Test-Path $firefoxPath)) {
     $firefoxPath = "${env:ProgramFiles(x86)}\Mozilla Firefox\firefox.exe"
 }
- 
-if (Test-Path $firefoxPath) {
-    # Set HTTPS/HTTP default via DISM/UserAssociation — works on Win10/11
-    $assocXml = @"
-<?xml version="1.0" encoding="UTF-8"?>
-<DefaultAssociations>
-  <Association Identifier=".htm"   ProgId="FirefoxHTML-308046B0AF4A39CB" ApplicationName="Firefox" />
-  <Association Identifier=".html"  ProgId="FirefoxHTML-308046B0AF4A39CB" ApplicationName="Firefox" />
-  <Association Identifier="http"   ProgId="FirefoxURL-308046B0AF4A39CB"  ApplicationName="Firefox" />
-  <Association Identifier="https"  ProgId="FirefoxURL-308046B0AF4A39CB"  ApplicationName="Firefox" />
-  <Association Identifier="ftp"    ProgId="FirefoxURL-308046B0AF4A39CB"  ApplicationName="Firefox" />
-</DefaultAssociations>
-"@
-    $assocFile = "$env:TEMP\firefox-defaults.xml"
-    $assocXml | Set-Content -Path $assocFile -Encoding UTF8
-    & dism.exe /Online /Import-DefaultAppAssociations:"$assocFile" | Out-Null
-    Remove-Item $assocFile -ErrorAction SilentlyContinue
-    Write-Status "Firefox set as default browser." "Green"
-} else {
-    Write-Status "Firefox not found — skipping default browser setting. Is it installed?" "Yellow"
-}
 
-# --- Firefox policies.json (uBlock Origin + homepage) ---
-# This is the official enterprise method for managing Firefox settings.
-# Mozilla documents it here: https://mozilla.github.io/policy-templates/
-# uBlock Origin extension ID is: uBlock0@raymondhill.net (verified on Mozilla Add-ons)
- 
-$firefoxPoliciesDir = "${env:ProgramFiles}\Mozilla Firefox\distribution"
-New-Item -Path $firefoxPoliciesDir -ItemType Directory -Force | Out-Null
- 
-$sharepointUrl = "https://theresolutgroup.sharepoint.com/sites/ResolutLandingPage?web=1"
-$policiesJson = @"
+if (-not (Test-Path $firefoxPath)) {
+    Write-Status "Firefox not found — skipping Firefox configuration. Is it installed?" "Yellow"
+} else {
+
+    # --- Default Browser ---
+    # Windows 11 blocks silent default browser changes by design (no script can bypass this).
+    # Best approach: open the Settings page so the user can confirm with one click.
+    Write-Status "Windows 11 requires user confirmation to set default browser." "Yellow"
+    Write-Status "Launching Default Apps settings for the user to confirm Firefox..." "Cyan"
+    Start-Process "ms-settings:defaultapps"
+    # Optionally pre-register Firefox so it appears at the top of the list:
+    # (This writes the ProgId hint — Firefox's own installer usually handles this)
+    # NOTE: Windows 11 hashes the ProgId value — you cannot write this manually without
+    # triggering a hash mismatch reset. Let the user click through Settings instead.
+
+    # --- Firefox policies.json (uBlock Origin + homepage) ---
+    # Official enterprise policy method: https://mozilla.github.io/policy-templates/
+    $firefoxPoliciesDir = "${env:ProgramFiles}\Mozilla Firefox\distribution"
+    New-Item -Path $firefoxPoliciesDir -ItemType Directory -Force | Out-Null
+
+    $sharepointUrl = "https://theresolutgroup.sharepoint.com/sites/ResolutLandingPage?web=1"
+
+    $policiesJson = @"
 {
   "policies": {
     "Homepage": {
       "URL": "$sharepointUrl",
-      "Locked": false,
-      "StartPage": "homepage"
-    },
-    "Extensions": {
-      "Install": [
-        "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi"
-      ]
+      "Locked": true,
+      "StartPage": "homepage-locked"
     },
     "ExtensionSettings": {
       "uBlock0@raymondhill.net": {
         "installation_mode": "force_installed",
-        "install_url": "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi"
+        "install_url": "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/addon-607454-latest.xpi"
       }
     }
   }
 }
 "@
+    # Write policies.json — Firefox reads this on every launch (no restart needed)
+    $policiesJson | Set-Content -Path "$firefoxPoliciesDir\policies.json" -Encoding UTF8
+    Write-Status "Firefox policies.json written (homepage locked + uBlock Origin force-installed)." "Green"
+    Write-Status "uBlock will auto-install on first Firefox launch." "Gray"
+}
 
-$policiesJson | Set-Content -Path "$firefoxPoliciesDir\policies.json" -Encoding UTF8
-Write-Status "Firefox policies.json written (homepage + uBlock Origin)." "Green"
-Write-Status "uBlock will auto-install on first Firefox launch." "Gray"
- 
-# Remove Edge from taskbar via registry (common OEM pin location)
+# --- Remove Edge from taskbar ---
+# Windows 11 has no reliable scripting API for taskbar pinning.
 $edgeTaskbarKey = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Taskband"
 if (Test-Path $edgeTaskbarKey) {
-    # Clearing FavoritesResolve forces taskbar to rebuild without OEM pins on next Explorer restart
     Remove-ItemProperty -Path $edgeTaskbarKey -Name "FavoritesResolve" -ErrorAction SilentlyContinue
+    Write-Status "Edge taskbar pin cleared (will rebuild on next Explorer restart)." "Gray"
 }
 
 # -------------------------------
@@ -204,6 +191,7 @@ $CustomDownloads = @(
     "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Client_Setup.-.Shortcut.lnk",
     "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/SophosSetup.exe",
     "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/SophosConnect_2.5.0_GA_IPsec_and_SSLVPN.msi",
+    "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/HVACSolutionsPro.exe",
 
     "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/AutoCAD_2026_1_English-US_en-US_setup_webinstall.exe",
     "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Revit_2021_Ship_20200715_r4_Win_64bit_di_cs-CZ_setup_webinstall.exe",
@@ -213,6 +201,8 @@ $CustomDownloads = @(
     "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Revit_2025_4_2_ML_setup_webinstall.exe",
     "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Revit_2026_2_ML_setup_webinstall.exe"
 )
+
+
 
 $tempFolder = "$env:TEMP\CustomInstallers"
 New-Item -Path $tempFolder -ItemType Directory -Force | Out-Null
