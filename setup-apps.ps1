@@ -70,6 +70,19 @@ function Test-PendingReboot {
 # }
 
 # -------------------------------
+#  Role Selection (Engineer or Not)
+# -------------------------------
+if (-not $Role) {
+    do {
+        $Role = Read-Host "Is this user an engineer? (Y/N)"
+    } until ($Role -match '^[YyNn]$')
+}
+
+$IsEngineer = $Role -match '^[Yy]$'
+
+Write-Status "Engineer role detected: $IsEngineer" "Cyan"
+
+# -------------------------------
 #  4. Driver Check
 # -------------------------------
 Write-Status "Checking Device Manager for problem drivers..." "Cyan"
@@ -134,8 +147,6 @@ winget import -i $tempJson `
     --disable-interactivity
 
 Remove-Item $tempJson -ErrorAction SilentlyContinue
-
-Write-Host "Apps installed! Some apps may require a restart or manual login/setup." -ForegroundColor Cyan
 
 # -------------------------------
 #  7. Firefox Config & User Profiles
@@ -207,23 +218,36 @@ if (Test-Path $edgeTaskbarKey) {
 
 Write-Status "Starting custom installs..." "Cyan"
 
-$CustomDownloads = @(
-    "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/CTCBIMSuitesMultiUserSetup.msi",
-    "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/NaviateNexusMultiUserSetup.msi",
-    "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/setup.exe",
-    "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Client_Setup.-.Shortcut.lnk",
-    "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/SophosSetup.exe",
-    "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/SophosConnect_2.5.0_GA_IPsec_and_SSLVPN.msi",
-    "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/HVACSolutionsPro.exe",
+if ($IsEngineer) {
+    Write-Status "Engineer detected - installing full custom app set." "Yellow"
 
-    "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/AutoCAD_2026_1_English-US_en-US_setup_webinstall.exe",
-    "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Revit_2021_Ship_20200715_r4_Win_64bit_di_cs-CZ_setup_webinstall.exe",
-    "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Revit_2022_Ship_20210224_RTC_Win_64bit_di_ML_setup_webinstall.exe",
-    "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Revit_2023_1_8_0_1_Win_64bit_di_ML_setup_webinstall.exe",
-    "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Revit_2024_3_3_ML_setup_webinstall.exe",
-    "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Revit_2025_4_2_ML_setup_webinstall.exe",
-    "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Revit_2026_2_ML_setup_webinstall.exe"
-)
+    $CustomDownloads = @(
+        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/CTCBIMSuitesMultiUserSetup.msi",
+        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/NaviateNexusMultiUserSetup.msi",
+        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/setup.exe",
+        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Client_Setup.-.Shortcut.lnk",
+        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/SophosSetup.exe",
+        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/SophosConnect_2.5.0_GA_IPsec_and_SSLVPN.msi",
+        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/HVACSolutionsPro.exe",
+        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/AutoCAD_2026_1_English-US_en-US_setup_webinstall.exe",
+        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Revit_2021_Ship_20200715_r4_Win_64bit_di_cs-CZ_setup_webinstall.exe",
+        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Revit_2022_Ship_20210224_RTC_Win_64bit_di_ML_setup_webinstall.exe",
+        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Revit_2023_1_8_0_1_Win_64bit_di_ML_setup_webinstall.exe",
+        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Revit_2024_3_3_ML_setup_webinstall.exe",
+        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Revit_2025_4_2_ML_setup_webinstall.exe",
+        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Revit_2026_2_ML_setup_webinstall.exe"
+    )
+}
+else {
+    Write-Status "Non-engineer detected - installing limited custom app set." "Yellow"
+
+    $CustomDownloads = @(
+        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/setup.exe",
+        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Client_Setup.-.Shortcut.lnk",
+        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/SophosSetup.exe",
+        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/SophosConnect_2.5.0_GA_IPsec_and_SSLVPN.msi"
+    )
+}
 
 
 
@@ -259,7 +283,7 @@ foreach ($url in $CustomDownloads) {
 }
 
 Remove-Item $tempFolder -Recurse -Force -ErrorAction SilentlyContinue
-Write-Status "Custom installs complete." "Cyan"
+Write-Host "Apps installed! Some apps may require a restart or manual login/setup." -ForegroundColor Cyan
 
 # -------------------------------
 #  9. Windows Updates
