@@ -99,6 +99,24 @@ if ($null -eq $battery -or $battery.BatteryStatus -eq 0) {
 }
 
 # -------------------------------
+#  Enable PowerShell Remoting
+# -------------------------------
+Write-Status "Enabling PowerShell remoting..." "Cyan"
+
+try {
+    Enable-PSRemoting -Force -SkipNetworkProfileCheck
+    Set-Service WinRM -StartupType Automatic
+    Start-Service WinRM
+
+    # Optional: allow remoting on private networks more cleanly
+    Enable-NetFirewallRule -DisplayGroup "Windows Remote Management"
+
+    Write-Status "PowerShell remoting enabled." "Green"
+} catch {
+    Write-Status "Failed to enable remoting: $_" "Red"
+}
+
+# -------------------------------
 #  6. Install Applications
 # -------------------------------
 $jsonUrl = "https://raw.githubusercontent.com/RJ060501/winget-apps-script/refs/heads/main/winget-apps.json" 
