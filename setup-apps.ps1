@@ -1,5 +1,7 @@
 # setup-apps.ps1
 
+#stop watch
+$stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
 
 param (
     $UserAccountName,
@@ -50,19 +52,22 @@ function Test-PendingReboot {
 # # -------------------------------
 # #  3. Domain Join (if not already)
 # # -------------------------------
-if (-not $SkipDomainJoin) {
-    $domain = "vbfa.com"
-    if ((Get-WmiObject Win32_ComputerSystem).Domain -ne $domain) {
-        Write-Status "Joining domain $domain ..."
-        $cred = Get-Credential -Message "Enter DOMAIN ADMIN credentials for join"
-        Add-Computer -DomainName $domain -Credential $cred # -Force -Restart
-        Write-Status "Domain join initiated — rebooting" "Yellow"
-        exit
-    }
-    else {
-        Write-Status "Already domain-joined" "Gray"
-    }
-}
+
+# Will prompt me to enter in DOMAIN ADMIN credentials. I will and then the script seems to stop running. It looks like it's in a paused state
+
+# if (-not $SkipDomainJoin) {
+#     $domain = "vbfa.com"
+#     if ((Get-WmiObject Win32_ComputerSystem).Domain -ne $domain) {
+#         Write-Status "Joining domain $domain ..."
+#         $cred = Get-Credential -Message "Enter DOMAIN ADMIN credentials for join"
+#         Add-Computer -DomainName $domain -Credential $cred # -Force -Restart
+#         Write-Status "Domain join initiated — rebooting" "Yellow"
+#         exit
+#     }
+#     else {
+#         Write-Status "Already domain-joined" "Gray"
+#     }
+# }
 
 # -------------------------------
 #  4. Driver Check
@@ -96,7 +101,7 @@ if ($null -eq $battery -or $battery.BatteryStatus -eq 0) {
 # -------------------------------
 #  6. Install Applications
 # -------------------------------
-$jsonUrl = "https://raw.githubusercontent.com/RJ060501/winget-apps-script/refs/heads/main/winget-apps.json"  # your URL here
+$jsonUrl = "https://raw.githubusercontent.com/RJ060501/winget-apps-script/refs/heads/main/winget-apps.json" 
 
 $tempJson = "$env:TEMP\winget-apps.json"
 
@@ -312,3 +317,7 @@ if ($updateRound -ge $maxRounds) {
 # --- Manual steps reminder ---
 Write-Status "Reminder: Taskbar items will need to be removed manually." "Yellow"
 Write-Status "Reminder: Startup items should be reviewed manually in Task Manager > Startup." "Yellow"
+
+$ScriptStopwatch.Stop()
+$elapsed = $ScriptStopwatch.Elapsed
+Write-Status ("Total script time: {0:hh\:mm\:ss}" -f $elapsed) "Cyan"
