@@ -3,12 +3,12 @@
 #stop watch
 $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
 
-# param (
-#     $UserAccountName,
-#     $ComputerSuffix = "-PC",
-#     $SkipDomainJoin,
-#     $Role
-# )
+param (
+    $UserAccountName,
+    $ComputerSuffix = "-PC",
+    $SkipDomainJoin,
+    $Role
+)
 
 
 
