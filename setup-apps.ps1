@@ -1,11 +1,11 @@
 # setup-apps.ps1
 
-param (
-    $UserAccountName,
-    $ComputerSuffix = "-PC",
-    $SkipDomainJoin,
-    $Role
-)
+# param (
+#     $UserAccountName,
+#     $ComputerSuffix = "-PC",
+#     $SkipDomainJoin,
+#     $Role
+# )
 
 #stop watch
 $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
@@ -72,11 +72,9 @@ function Test-PendingReboot {
 # -------------------------------
 #  Role Selection (Engineer or Not)
 # -------------------------------
-if (-not $Role) {
-    do {
-        $Role = Read-Host "Is this user an engineer? (Y/N)"
-    } until ($Role -match '^[YyNn]$')
-}
+do {
+    $Role = Read-Host "Is this user an engineer? (Y/N)"
+} until ($Role -match '^[YyNn]$')
 
 $IsEngineer = $Role -match '^[Yy]$'
 
