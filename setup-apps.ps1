@@ -1,15 +1,14 @@
 # setup-apps.ps1
 
-#stop watch
-$stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
-
-
 param (
     $UserAccountName,
     $ComputerSuffix = "-PC",
     $SkipDomainJoin,
     $Role
 )
+
+#stop watch
+$stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
 
 
 
