@@ -3,6 +3,7 @@
 #stop watch
 $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
 
+
 param (
     $UserAccountName,
     $ComputerSuffix = "-PC",
@@ -360,6 +361,6 @@ if ($updateRound -ge $maxRounds) {
 Write-Status "Reminder: Taskbar items will need to be removed manually." "Yellow"
 Write-Status "Reminder: Startup items should be reviewed manually in Task Manager > Startup." "Yellow"
 
-$ScriptStopwatch.Stop()
-$elapsed = $ScriptStopwatch.Elapsed
+$stopwatch.Stop()
+$elapsed = $stopwatch.Elapsed
 Write-Status ("Total script time: {0:hh\:mm\:ss}" -f $elapsed) "Cyan"
