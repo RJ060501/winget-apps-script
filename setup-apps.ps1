@@ -226,7 +226,7 @@ if ($IsEngineer) {
         "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Client_Setup.-.Shortcut.lnk",
         "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/SophosSetup.exe",
         "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/SophosConnect_2.5.0_GA_IPsec_and_SSLVPN.msi",
-        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/HVACSolutionsPro.exe",
+        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/HVACSolutionPro.exe",
         "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/AutoCAD_2026_1_English-US_en-US_setup_webinstall.exe",
         "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Revit_2021_Ship_20200715_r4_Win_64bit_di_cs-CZ_setup_webinstall.exe",
         "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Revit_2022_Ship_20210224_RTC_Win_64bit_di_ML_setup_webinstall.exe",
@@ -267,7 +267,7 @@ foreach ($url in $CustomDownloads) {
         if ($ext -eq ".msi") {
             $process = Start-Process msiexec.exe -ArgumentList "/i `"$localPath`" /qn /norestart" -Wait -PassThru
         } 
-        elseif ($ext -eq "setup.exe") {
+        elseif ($ext -eq "setup.exe" -or "SophosSetup.exe") {
             $process = Start-Process $localPath -ArgumentList "--quiet" -Wait -PassThru
         }
         else {
