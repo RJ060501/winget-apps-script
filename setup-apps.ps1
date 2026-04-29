@@ -264,10 +264,16 @@ foreach ($url in $CustomDownloads) {
         
         $ext = [System.IO.Path]::GetExtension($fileName).ToLower()
         
-        if ($ext -eq ".msi") {
+        if ($ext -eq ".lnk") {
+            $desktopPath = [Environment]::GetFolderPath("CommonDesktopDirectory")
+            Copy-Item $localPath -Destination $desktopPath -Force
+            Write-Status "  Shortcut copied to Public Desktop" "Green"
+            continue
+        }
+        elseif ($ext -eq ".msi") {
             $process = Start-Process msiexec.exe -ArgumentList "/i `"$localPath`" /qn /norestart" -Wait -PassThru
-        } 
-        elseif ($ext -eq "setup.exe" -or "SophosSetup.exe") {
+        }
+        elseif ($fileName -eq "setup.exe" -or $fileName -eq "SophosSetup.exe") {
             $process = Start-Process $localPath -ArgumentList "--quiet" -Wait -PassThru
         }
         else {
