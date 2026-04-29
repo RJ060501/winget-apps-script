@@ -266,7 +266,11 @@ foreach ($url in $CustomDownloads) {
         
         if ($ext -eq ".msi") {
             $process = Start-Process msiexec.exe -ArgumentList "/i `"$localPath`" /qn /norestart" -Wait -PassThru
-        } else {
+        } 
+        elseif ($ext -eq "setup.exe") {
+            $process = Start-Process $localPath -ArgumentList "--quiet" -Wait -PassThru
+        }
+        else {
             $process = Start-Process $localPath -ArgumentList "/q" -Wait -PassThru
         }
 
