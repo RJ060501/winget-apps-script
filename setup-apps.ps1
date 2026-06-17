@@ -229,7 +229,7 @@ if (Test-Path $edgeTaskbarKey) {
 Write-Status "Starting custom installs..." "Cyan"
 
 if ($IsEngineer) {
-    Write-Status "Engineer detected - installing full custom app set." "Yellow"
+    Write-Status "Engineer detected - installing engineer custom app set." "Yellow"
 
     $CustomDownloads = @(
         "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/CTCBIMSuitesMultiUserSetup.msi",
@@ -238,15 +238,25 @@ if ($IsEngineer) {
         "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Client_Setup.-.Shortcut.lnk",
         "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/SophosSetup.exe",
         "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/SophosConnect_2.5.0_GA_IPsec_and_SSLVPN.msi",
-        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/HVACSolutionPro.exe",
-        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/AutoCAD_2026_1_English-US_en-US_setup_webinstall.exe",
-        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Revit_2021_Ship_20200715_r4_Win_64bit_di_cs-CZ_setup_webinstall.exe",
-        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Revit_2022_Ship_20210224_RTC_Win_64bit_di_ML_setup_webinstall.exe",
-        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Revit_2023_1_8_0_1_Win_64bit_di_ML_setup_webinstall.exe",
-        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Revit_2024_3_3_ML_setup_webinstall.exe",
-        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Revit_2025_4_2_ML_setup_webinstall.exe",
-        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Revit_2026_2_ML_setup_webinstall.exe"
+        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/HVACSolutionPro.exe"
     )
+
+    if ($InstallAutodesk) {
+        Write-Status "Autodesk selected - adding Autodesk/Revit installers." "Yellow"
+
+        $CustomDownloads += @(
+            "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/AutoCAD_2026_1_English-US_en-US_setup_webinstall.exe",
+            "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Revit_2021_Ship_20200715_r4_Win_64bit_di_cs-CZ_setup_webinstall.exe",
+            "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Revit_2022_Ship_20210224_RTC_Win_64bit_di_ML_setup_webinstall.exe",
+            "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Revit_2023_1_8_0_1_Win_64bit_di_ML_setup_webinstall.exe",
+            "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Revit_2024_3_3_ML_setup_webinstall.exe",
+            "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Revit_2025_4_2_ML_setup_webinstall.exe",
+            "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Revit_2026_2_ML_setup_webinstall.exe"
+        )
+    }
+    else {
+        Write-Status "Autodesk skipped." "Yellow"
+    }
 }
 else {
     Write-Status "Non-engineer detected - installing limited custom app set." "Yellow"
@@ -258,7 +268,6 @@ else {
         "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/SophosConnect_2.5.0_GA_IPsec_and_SSLVPN.msi"
     )
 }
-
 
 
 $tempFolder = "$env:TEMP\CustomInstallers"
