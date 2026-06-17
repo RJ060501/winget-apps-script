@@ -80,6 +80,18 @@ $IsEngineer = $Role -match '^[Yy]$'
 
 Write-Status "Engineer role detected: $IsEngineer" "Cyan"
 
+$InstallAutodesk = $false
+
+if ($IsEngineer) {
+    do {
+        $AutodeskAnswer = Read-Host "Do you want to install Autodesk/Revit applications? (Y/N)"
+    } until ($AutodeskAnswer -match '^[YyNn]$')
+
+    $InstallAutodesk = $AutodeskAnswer -match '^[Yy]$'
+
+    Write-Status "Install Autodesk selected: $InstallAutodesk" "Cyan"
+}
+
 # -------------------------------
 #  4. Driver Check
 # -------------------------------
