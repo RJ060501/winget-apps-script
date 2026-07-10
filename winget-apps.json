@@ -62,9 +62,6 @@
         },
         {
           "PackageIdentifier": "Microsoft.Office"
-        },
-        {
-          "PackageIdentifier": "SlackTechnologies.Slack"
         }
       ]
     }

@@ -122,21 +122,27 @@ if ($null -eq $battery -or $battery.BatteryStatus -eq 0) {
 }
 
 # -------------------------------
-#  Enable PowerShell Remoting
+#  Enable Remote Desktop (RDP)
 # -------------------------------
-Write-Status "Enabling PowerShell remoting..." "Cyan"
+Write-Status "Enabling Remote Desktop..." "Cyan"
 
 try {
-    Enable-PSRemoting -Force -SkipNetworkProfileCheck
-    Set-Service WinRM -StartupType Automatic
-    Start-Service WinRM
+    # Enable Remote Desktop
+    Set-ItemProperty `
+        -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server" `
+        -Name "fDenyTSConnections" `
+        -Value 0
 
-    # Optional: allow remoting on private networks more cleanly
-    Enable-NetFirewallRule -DisplayGroup "Windows Remote Management"
+    # Enable the Windows Firewall rules for Remote Desktop
+    Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
 
-    Write-Status "PowerShell remoting enabled." "Green"
-} catch {
-    Write-Status "Failed to enable remoting: $_" "Red"
+    # Make sure the Remote Desktop Services service starts automatically
+    Set-Service -Name TermService -StartupType Automatic
+
+    Write-Status "Remote Desktop enabled successfully." "Green"
+}
+catch {
+    Write-Status "Failed to enable Remote Desktop: $($_.Exception.Message)" "Red"
 }
 
 # -------------------------------
@@ -216,11 +222,11 @@ if (-not (Test-Path $firefoxPath)) {
 
 # --- Remove Edge from taskbar ---
 # Windows 11 has no reliable scripting API for taskbar pinning.
-$edgeTaskbarKey = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Taskband"
-if (Test-Path $edgeTaskbarKey) {
-    Remove-ItemProperty -Path $edgeTaskbarKey -Name "FavoritesResolve" -ErrorAction SilentlyContinue
-    Write-Status "Edge taskbar pin cleared (will rebuild on next Explorer restart)." "Gray"
-}
+# $edgeTaskbarKey = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Taskband"
+# if (Test-Path $edgeTaskbarKey) {
+#     Remove-ItemProperty -Path $edgeTaskbarKey -Name "FavoritesResolve" -ErrorAction SilentlyContinue
+#     Write-Status "Edge taskbar pin cleared (will rebuild on next Explorer restart)." "Gray"
+# }
 
 # -------------------------------
 #  8. Custom / non-winget installs
