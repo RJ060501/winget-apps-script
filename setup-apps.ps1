@@ -245,6 +245,8 @@ if ($IsEngineer) {
         "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/SophosSetup.exe",
         "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/SophosConnect_2.5.0_GA_IPsec_and_SSLVPN.msi",
         "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/HVACSolutionPro.exe"
+        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/ch8setup.exe",
+        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/COMcheck_4_1_5_5_setup.exe"
     )
 
     if ($InstallAutodesk) {
