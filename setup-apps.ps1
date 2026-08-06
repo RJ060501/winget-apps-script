@@ -241,7 +241,7 @@ if ($IsEngineer) {
         "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/CTCBIMSuitesMultiUserSetup.msi",
         "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/NaviateNexusMultiUserSetup.msi",
         "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/setup.exe",
-        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Client_Setup.-.Shortcut.lnk",
+        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/JobGator.exe",
         "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/SophosSetup.exe",
         "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/SophosConnect_2.5.0_GA_IPsec_and_SSLVPN.msi",
         "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/HVACSolutionPro.exe"
@@ -271,7 +271,7 @@ else {
 
     $CustomDownloads = @(
         "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/setup.exe",
-        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Client_Setup.-.Shortcut.lnk",
+        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/JobGator.exe",
         "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/SophosSetup.exe",
         "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/SophosConnect_2.5.0_GA_IPsec_and_SSLVPN.msi"
     )
