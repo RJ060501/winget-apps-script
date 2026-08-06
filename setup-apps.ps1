@@ -240,12 +240,11 @@ if ($IsEngineer) {
     $CustomDownloads = @(
         "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/CTCBIMSuitesMultiUserSetup.msi",
         "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/NaviateNexusMultiUserSetup.msi",
-        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/setup.exe",
-        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/JobGator.exe",
+        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Client_Setup.-.Shortcut.lnk",
         "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/SophosSetup.exe",
         "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/SophosConnect_2.5.0_GA_IPsec_and_SSLVPN.msi",
-        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/HVACSolutionPro.exe"
-        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/ch8setup.exe",
+        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/HVACSolutionPro.exe",
+        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/ch8setup.exe", #EliteLoads
         "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/COMcheck_4_1_5_5_setup.exe"
     )
 
@@ -270,8 +269,7 @@ else {
     Write-Status "Non-engineer detected - installing limited custom app set." "Yellow"
 
     $CustomDownloads = @(
-        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/setup.exe",
-        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/JobGator.exe",
+        "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Client_Setup.-.Shortcut.lnk",
         "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/SophosSetup.exe",
         "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/SophosConnect_2.5.0_GA_IPsec_and_SSLVPN.msi"
     )
@@ -317,6 +315,54 @@ foreach ($url in $CustomDownloads) {
     } else {
         Write-Status "  Download failed for $fileName" "Red"
     }
+}
+
+# -------------------------------
+#  Job Gator Install
+# -------------------------------
+
+Write-Status "Installing Job Gator..." "Cyan"
+
+$jobGatorZipUrl = "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/JobGator.zip"
+$jobGatorZip    = Join-Path $env:TEMP "JobGator.zip"
+$jobGatorFolder = "$env:ProgramFiles\Job Gator"
+
+Write-Status "Downloading Job Gator package..." "Yellow"
+
+& curl.exe -L -o $jobGatorZip $jobGatorZipUrl `
+    --retry 3 `
+    --retry-delay 5 `
+    --fail `
+    --silent `
+    --show-error
+
+if (Test-Path $jobGatorZip) {
+
+    if (Test-Path $jobGatorFolder) {
+        Remove-Item $jobGatorFolder -Recurse -Force
+    }
+
+    Expand-Archive `
+        -Path $jobGatorZip `
+        -DestinationPath $jobGatorFolder `
+        -Force
+
+    $application = Get-ChildItem `
+        -Path $jobGatorFolder `
+        -Filter "*.application" `
+        -Recurse |
+        Select-Object -First 1
+
+    if ($application) {
+        Write-Status "Launching Job Gator installer..." "Green"
+        Start-Process $application.FullName -Wait
+    }
+    else {
+        Write-Status "Job Gator .application file not found." "Red"
+    }
+}
+else {
+    Write-Status "Failed to download Job Gator package." "Red"
 }
 
 Remove-Item $tempFolder -Recurse -Force -ErrorAction SilentlyContinue
