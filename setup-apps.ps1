@@ -323,7 +323,7 @@ foreach ($url in $CustomDownloads) {
 
 Write-Status "Installing Job Gator..." "Cyan"
 
-$jobGatorZipUrl = "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/JobGator.zip"
+$jobGatorZipUrl = "https://github.com/RJ060501/winget-apps-script/releases/download/custom_apps/Job.Gator.2024.-.Shortcut.zip"
 $jobGatorZip    = Join-Path $env:TEMP "JobGator.zip"
 $jobGatorFolder = "$env:ProgramFiles\Job Gator"
 
