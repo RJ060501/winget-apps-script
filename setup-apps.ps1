@@ -280,40 +280,122 @@ $tempFolder = "$env:TEMP\CustomInstallers"
 New-Item -Path $tempFolder -ItemType Directory -Force | Out-Null
 
 foreach ($url in $CustomDownloads) {
+
     $fileName = [System.IO.Path]::GetFileName($url)
     $localPath = Join-Path $tempFolder $fileName
+    $ext = [System.IO.Path]::GetExtension($fileName).ToLower()
 
+    Write-Status "----------------------------------------" "Gray"
+    Write-Status "Processing: $fileName" "Cyan"
+
+    # -------------------------------
+    # Download
+    # -------------------------------
     Write-Status "Downloading: $fileName" "Yellow"
-    & curl.exe -L -o $localPath $url --retry 3 --retry-delay 5 --fail --silent --show-error
 
-    if (Test-Path $localPath) {
-        Write-Status "Installing: $fileName" "Green"
-        
-        $ext = [System.IO.Path]::GetExtension($fileName).ToLower()
-        
-        if ($ext -eq ".lnk") {
-            $desktopPath = [Environment]::GetFolderPath("CommonDesktopDirectory")
-            Copy-Item $localPath -Destination $desktopPath -Force
-            Write-Status "  Shortcut copied to Public Desktop" "Green"
-            continue
-        }
-        elseif ($ext -eq ".msi") {
-            $process = Start-Process msiexec.exe -ArgumentList "/i `"$localPath`" /qn /norestart" -Wait -PassThru
-        }
-        elseif ($fileName -eq "setup.exe" -or $fileName -eq "SophosSetup.exe") {
-            $process = Start-Process $localPath -ArgumentList "--quiet" -Wait -PassThru
-        }
-        else {
-            $process = Start-Process $localPath -ArgumentList "/q" -Wait -PassThru
-        }
+    & curl.exe -L -o $localPath $url `
+        --retry 3 `
+        --retry-delay 5 `
+        --fail `
+        --silent `
+        --show-error
 
-        if ($process.ExitCode -eq 0 -or $process.ExitCode -eq 3010 -or $process.ExitCode -eq 1641) {
-            Write-Status "  SUCCESS (exit $($process.ExitCode))" "Green"
-        } else {
-            Write-Status "  Exit $($process.ExitCode)" "Yellow"
-        }
-    } else {
+    if ($LASTEXITCODE -ne 0 -or -not (Test-Path $localPath)) {
         Write-Status "  Download failed for $fileName" "Red"
+        continue
+    }
+
+    Write-Status "  Download complete." "Green"
+
+    # -------------------------------
+    # Shortcut files
+    # -------------------------------
+    if ($ext -eq ".lnk") {
+
+        $desktopPath = [Environment]::GetFolderPath("CommonDesktopDirectory")
+
+        try {
+            Copy-Item $localPath -Destination $desktopPath -Force -ErrorAction Stop
+            Write-Status "  Shortcut copied to Public Desktop." "Green"
+        }
+        catch {
+            Write-Status "  Failed to copy shortcut: $($_.Exception.Message)" "Red"
+        }
+
+        continue
+    }
+
+    # -------------------------------
+    # Determine installer command
+    # -------------------------------
+    if ($ext -eq ".msi") {
+
+        $installer = "msiexec.exe"
+        $arguments = "/i `"$localPath`" /qn /norestart"
+
+    }
+    elseif ($fileName -eq "SophosSetup.exe") {
+
+        $installer = $localPath
+        $arguments = "--quiet"
+
+    }
+    else {
+
+        $installer = $localPath
+        $arguments = "/q"
+    }
+
+    # -------------------------------
+    # Install with retry
+    # -------------------------------
+    $maxAttempts = 2
+    $attempt = 0
+    $installedSuccessfully = $false
+
+    while ($attempt -lt $maxAttempts -and -not $installedSuccessfully) {
+
+        $attempt++
+
+        Write-Status "Installing: $fileName (attempt $attempt of $maxAttempts)" "Yellow"
+
+        try {
+
+            $process = Start-Process `
+                -FilePath $installer `
+                -ArgumentList $arguments `
+                -Wait `
+                -PassThru `
+                -ErrorAction Stop
+
+            $exitCode = $process.ExitCode
+
+            if ($exitCode -in @(0, 3010, 1641)) {
+
+                Write-Status "  SUCCESS (exit $exitCode)" "Green"
+                $installedSuccessfully = $true
+
+            }
+            else {
+
+                Write-Status "  Installer returned exit code $exitCode" "Yellow"
+            }
+
+        }
+        catch {
+
+            Write-Status "  Installer failed: $($_.Exception.Message)" "Red"
+        }
+
+        if (-not $installedSuccessfully -and $attempt -lt $maxAttempts) {
+
+            Write-Status "  Waiting 10 seconds before retry..." "Yellow"
+            Start-Sleep -Seconds 10
+        }
+    }
+
+    if (-not $installedSuccessfully) {
+        Write-Status "  FAILED after $maxAttempts attempts: $fileName" "Red"
     }
 }
 
