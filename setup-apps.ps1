@@ -164,61 +164,61 @@ winget import -i $tempJson `
 
 Remove-Item $tempJson -ErrorAction SilentlyContinue
 
-# -------------------------------
-#  7. Firefox Config & User Profiles
-# -------------------------------
+# # -------------------------------
+# #  7. Firefox Config & User Profiles
+# # -------------------------------
 
-Write-Status "Configuring Firefox (homepage, uBlock Origin)..." "Cyan"
+# Write-Status "Configuring Firefox (homepage, uBlock Origin)..." "Cyan"
 
-$firefoxPath = "${env:ProgramFiles}\Mozilla Firefox\firefox.exe"
-if (-not (Test-Path $firefoxPath)) {
-    $firefoxPath = "${env:ProgramFiles(x86)}\Mozilla Firefox\firefox.exe"
-}
+# $firefoxPath = "${env:ProgramFiles}\Mozilla Firefox\firefox.exe"
+# if (-not (Test-Path $firefoxPath)) {
+#     $firefoxPath = "${env:ProgramFiles(x86)}\Mozilla Firefox\firefox.exe"
+# }
 
-if (-not (Test-Path $firefoxPath)) {
-    Write-Status "Firefox not found — skipping Firefox configuration. Is it installed?" "Yellow"
-} else {
+# if (-not (Test-Path $firefoxPath)) {
+#     Write-Status "Firefox not found — skipping Firefox configuration. Is it installed?" "Yellow"
+# } else {
 
-    # --- Default Browser ---
-    # Windows 11 blocks silent default browser changes by design (no script can bypass this).
-    # Best approach: open the Settings page so the user can confirm with one click.
-    Write-Status "Windows 11 requires user confirmation to set default browser." "Yellow"
-    Write-Status "Launching Default Apps settings for the user to confirm Firefox..." "Cyan"
-    Start-Process "ms-settings:defaultapps"
-    # Optionally pre-register Firefox so it appears at the top of the list:
-    # (This writes the ProgId hint — Firefox's own installer usually handles this)
-    # NOTE: Windows 11 hashes the ProgId value — you cannot write this manually without
-    # triggering a hash mismatch reset. Let the user click through Settings instead.
+#     # --- Default Browser ---
+#     # Windows 11 blocks silent default browser changes by design (no script can bypass this).
+#     # Best approach: open the Settings page so the user can confirm with one click.
+#     Write-Status "Windows 11 requires user confirmation to set default browser." "Yellow"
+#     Write-Status "Launching Default Apps settings for the user to confirm Firefox..." "Cyan"
+#     Start-Process "ms-settings:defaultapps"
+#     # Optionally pre-register Firefox so it appears at the top of the list:
+#     # (This writes the ProgId hint — Firefox's own installer usually handles this)
+#     # NOTE: Windows 11 hashes the ProgId value — you cannot write this manually without
+#     # triggering a hash mismatch reset. Let the user click through Settings instead.
 
-    # --- Firefox policies.json (uBlock Origin + homepage) ---
-    # Official enterprise policy method: https://mozilla.github.io/policy-templates/
-    $firefoxPoliciesDir = "${env:ProgramFiles}\Mozilla Firefox\distribution"
-    New-Item -Path $firefoxPoliciesDir -ItemType Directory -Force | Out-Null
+#     # --- Firefox policies.json (uBlock Origin + homepage) ---
+#     # Official enterprise policy method: https://mozilla.github.io/policy-templates/
+#     $firefoxPoliciesDir = "${env:ProgramFiles}\Mozilla Firefox\distribution"
+#     New-Item -Path $firefoxPoliciesDir -ItemType Directory -Force | Out-Null
 
-    $sharepointUrl = "https://theresolutgroup.sharepoint.com/sites/ResolutLandingPage?web=1"
+#     $sharepointUrl = "https://theresolutgroup.sharepoint.com/sites/ResolutLandingPage?web=1"
 
-    $policiesJson = @"
-{
-  "policies": {
-    "Homepage": {
-      "URL": "$sharepointUrl",
-      "Locked": true,
-      "StartPage": "homepage-locked"
-    },
-    "ExtensionSettings": {
-      "uBlock0@raymondhill.net": {
-        "installation_mode": "force_installed",
-        "install_url": "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/addon-607454-latest.xpi"
-      }
-    }
-  }
-}
-"@
-    # Write policies.json — Firefox reads this on every launch (no restart needed)
-    $policiesJson | Set-Content -Path "$firefoxPoliciesDir\policies.json" -Encoding UTF8
-    Write-Status "Firefox policies.json written (homepage locked + uBlock Origin force-installed)." "Green"
-    Write-Status "uBlock will auto-install on first Firefox launch." "Gray"
-}
+#     $policiesJson = @"
+# {
+#   "policies": {
+#     "Homepage": {
+#       "URL": "$sharepointUrl",
+#       "Locked": true,
+#       "StartPage": "homepage-locked"
+#     },
+#     "ExtensionSettings": {
+#       "uBlock0@raymondhill.net": {
+#         "installation_mode": "force_installed",
+#         "install_url": "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/addon-607454-latest.xpi"
+#       }
+#     }
+#   }
+# }
+# "@
+#     # Write policies.json — Firefox reads this on every launch (no restart needed)
+#     $policiesJson | Set-Content -Path "$firefoxPoliciesDir\policies.json" -Encoding UTF8
+#     Write-Status "Firefox policies.json written (homepage locked + uBlock Origin force-installed)." "Green"
+#     Write-Status "uBlock will auto-install on first Firefox launch." "Gray"
+# }
 
 # --- Remove Edge from taskbar ---
 # Windows 11 has no reliable scripting API for taskbar pinning.
